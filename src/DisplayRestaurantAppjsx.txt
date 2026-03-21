@@ -1,0 +1,34 @@
+import { useState, useEffect } from 'react'
+import { supabase } from './connectDB'
+import DisplayRestaurant from '/components/DisplayRestaurant'
+import './App.css'
+
+// App.jsx
+function App() {
+  const [restaurants, setRestaurants] = useState([]);
+
+  async function getAllRestaurants() {
+    const { data, error } = await supabase
+      .from('RESTAURANT')
+      .select('*');
+
+    if (error) {
+      console.error('Error:', error);
+    } else {
+      setRestaurants(data);
+    }
+  }
+
+  useEffect(() => {
+    getAllRestaurants();
+  }, []);
+
+  return (
+    <>
+      <DisplayRestaurant restaurants={restaurants} />
+
+    </>
+  );
+}
+
+export default App;
