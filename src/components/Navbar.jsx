@@ -4,7 +4,7 @@ import { Link, useMatch } from 'react-router-dom';
 
 function Navbar({ restaurant }) {
 
-    const menuRoute = useMatch("/:restaurantName/table/:tableNumber/menu");
+    const menuRoute = useMatch("/:restaurantName/table/:tableNumber/*");
     const tableNumber = menuRoute?.params?.tableNumber;
 
     return (

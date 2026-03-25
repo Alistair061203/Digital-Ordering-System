@@ -4,6 +4,7 @@ import { supabase } from './connectDB';
 import MenuPage from './pages/MenuPage';
 import Navbar from './components/Navbar';
 import CartPage from './pages/CartPage';
+import PaymentPage from './pages/PaymentPage';
 import DisplayRestaurant from './components/DisplayRestaurant';
 import './App.css'
 
@@ -31,6 +32,10 @@ function App() {
         <Route
           path=":restaurantName/table/:tableNumber/cart"
           element={<CartPage cart={cart} setCart={setCart} />}
+        />
+        <Route
+          path=":restaurantName/table/:tableNumber/payment"
+          element={<PaymentPage cart={cart} setCart={setCart} />}
         />
         <Route path="/" element={
           <div className="flex flex-col items-center justify-center h-screen text-center">
