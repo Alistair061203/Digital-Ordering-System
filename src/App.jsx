@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { supabase } from './connectDB';
-import MenuPage from '/pages/MenuPage';
+import MenuPage from './pages/MenuPage';
+import Navbar from './components/Navbar';
 import './App.css'
+
 function App() {
   const [restaurant, setRestaurant] = useState(null);
 
@@ -17,6 +19,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <Navbar restaurant={restaurant} />
       <Routes>
         <Route
           path=":restaurantName/table/:tableNumber/menu"
