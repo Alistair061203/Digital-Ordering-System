@@ -3,15 +3,18 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '/src/connectDB';
 import Category from '../components/Category';
-// 1. Import your new component
-
+import MenuCard from '../components/MenuCard';
+import ItemModal from '../components/ItemModal'; // 1. Import the new modal
 
 function MenuPage({ restaurant }) {
   const { restaurantName, tableNumber } = useParams();
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState('All Dishes');
-  const [categories, setCategories] = useState(['All Dishes']);
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [categories, setCategories] = useState([{ id: 'all', name: 'All Dishes' }]);
+
+  // 2. State for the Popup
+  const [selectedItem, setSelectedItem] = useState(null);
 
   useEffect(() => {
     if (restaurant) {
@@ -21,13 +24,9 @@ function MenuPage({ restaurant }) {
   }, [restaurant]);
 
   async function fetchCategories() {
-    const { data, error } = await supabase.from('MENU_CATEGORY').select('name');
-    if (error) {
-      console.error("Error fetching categories:", error);
-    } else if (data) {
-      const fetchedNames = data.map(category => category.name);
-      setCategories(['All Dishes', ...fetchedNames]);
-    }
+    const { data, error } = await supabase.from('MENU_CATEGORY').select('id, name');
+    if (error) console.error("Error fetching categories:", error);
+    else if (data) setCategories([{ id: 'all', name: 'All Dishes' }, ...data]);
   }
 
   async function fetchMenu() {
@@ -36,18 +35,14 @@ function MenuPage({ restaurant }) {
       .from('MENU_ITEM')
       .select('*')
       .eq('restaurant_id', restaurant.id);
-
-    if (error) {
-      console.error("Error fetching menu:", error);
-    } else {
-      setMenuItems(data);
-    }
+    if (error) console.error("Error fetching menu:", error);
+    else setMenuItems(data);
     setLoading(false);
   }
 
-  const displayedItems = activeCategory === 'All Dishes'
+  const displayedItems = activeCategory === 'all'
     ? menuItems
-    : menuItems.filter(item => item.category === activeCategory);
+    : menuItems.filter(item => item.category_id === activeCategory);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -60,45 +55,29 @@ function MenuPage({ restaurant }) {
       <main className="p-4 max-w-md mx-auto">
         <section>
           {loading ? (
-            <p className="text-center text-gray-400 animate-pulse mt-8">Loading delicious food...</p>
+            <p className="text-center text-gray-400 animate-pulse mt-8">Loading...</p>
           ) : (
             <div className="grid gap-6">
-
               {displayedItems.map((item) => (
-                <button
-                  onClick={() => console.log('added to cart', item.name)}
-                  key={item.id}
-                  className="text-left w-full transition-transform active:scale-[0.98] bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col"
-                >
-
-                  {item.image_url && (
-                    <img src={item.image_url} alt={item.name} className="w-full h-48 object-cover bg-gray-100" />
-                  )}
-
-                  <div className="p-5 flex flex-col flex-grow">
-
-                    <div className="flex justify-between items-center mt-auto">
-                      <h4 className="font-bold text-lg text-neutral mb-1">{item.name}</h4>
-                      <p className="text-secondary font-black text-lg">₱{item.price}</p>
-                    </div>
-
-                    {item.description && (
-                      <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{item.description}</p>
-                    )}
-                  </div>
-                </button>
+                <MenuCard 
+                  key={item.id} 
+                  item={item} 
+                  // 3. Open modal on click
+                  onAddToCart={() => setSelectedItem(item)} 
+                />
               ))}
-
-              {displayedItems.length === 0 && (
-                <div className="text-center text-gray-500 mt-8 py-8">
-                  No items found in {activeCategory}.
-                </div>
-              )}
-
             </div>
           )}
         </section>
       </main>
+
+      {/* 4. Render the Modal if an item is selected */}
+      {selectedItem && (
+        <ItemModal 
+          item={selectedItem} 
+          onClose={() => setSelectedItem(null)} 
+        />
+      )}
     </div>
   );
 }
