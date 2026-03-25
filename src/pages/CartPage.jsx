@@ -1,5 +1,5 @@
 import React from 'react';
-import AddToCart from '../src/components/AddToCart';
+import AddToCart from '../components/AddToCart';
 
 function CartPage({ cart, setCart }) {
   return <AddToCart cart={cart} setCart={setCart} />;

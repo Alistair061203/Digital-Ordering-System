@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { supabase } from './connectDB';
-import MenuPage from '/pages/MenuPage';
-import CartPage from '/pages/CartPage';
+import MenuPage from './pages/MenuPage';
+import CartPage from './pages/CartPage';
 import DisplayRestaurant from './components/DisplayRestaurant';
-import AddToCart from './components/AddToCart';
 import './App.css'
 function App() {
   const [restaurant, setRestaurant] = useState(null);
