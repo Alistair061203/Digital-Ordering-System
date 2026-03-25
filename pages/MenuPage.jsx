@@ -2,10 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '/src/connectDB';
 
-function MenuPage({ restaurant }) {
+function MenuPage({ restaurant, cart, setCart }) {
   const { restaurantName, tableNumber } = useParams();
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const addToCart = (menuItem) => {
+    setCart((current) => {
+      const existing = current.find((item) => item.id === menuItem.id);
+      if (existing) {
+        return current.map((item) =>
+          item.id === menuItem.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      }
+      return [...current, { ...menuItem, quantity: 1 }];
+    });
+  };
 
   useEffect(() => {
     if (restaurant) {
@@ -40,9 +52,17 @@ function MenuPage({ restaurant }) {
 
       <main className="p-6 max-w-md mx-auto">
         {/* Table Indicator */}
-        <div className="bg-white border-2 border-red-500 p-4 rounded-2xl shadow-sm text-center mb-8">
-          <p className="text-gray-500 uppercase text-xs font-bold tracking-widest">Ordering from</p>
-          <h2 className="text-5xl font-black text-red-600">TABLE {tableNumber}</h2>
+        <div className="flex justify-between items-center mb-6">
+          <div className="bg-white border-2 border-red-500 p-4 rounded-2xl shadow-sm text-center flex-1 mr-3">
+            <p className="text-gray-500 uppercase text-xs font-bold tracking-widest">Ordering from</p>
+            <h2 className="text-5xl font-black text-red-600">TABLE {tableNumber}</h2>
+          </div>
+          <a
+            href={`/${restaurantName}/table/${tableNumber}/cart`}
+            className="bg-red-600 text-white px-4 py-3 rounded-xl font-bold shadow-md"
+          >
+            View Cart ({cart.length})
+          </a>
         </div>
 
         {/* Menu Section Placeholder */}
@@ -59,7 +79,10 @@ function MenuPage({ restaurant }) {
                     <h4 className="font-bold text-lg">{item.name}</h4>
                     <p className="text-red-600 font-semibold">₱{item.price}</p>
                   </div>
-                  <button className="bg-black text-white px-4 py-2 rounded-lg text-sm font-bold">
+                  <button
+                    onClick={() => addToCart(item)}
+                    className="bg-black text-white px-4 py-2 rounded-lg text-sm font-bold"
+                  >
                     ADD +
                   </button>
                 </div>

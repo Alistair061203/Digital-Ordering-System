@@ -2,9 +2,13 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { supabase } from './connectDB';
 import MenuPage from '/pages/MenuPage';
+import CartPage from '/pages/CartPage';
+import DisplayRestaurant from './components/DisplayRestaurant';
+import AddToCart from './components/AddToCart';
 import './App.css'
 function App() {
   const [restaurant, setRestaurant] = useState(null);
+  const [cart, setCart] = useState([]);
 
   useEffect(() => {
     async function getRestaurant() {
@@ -20,7 +24,11 @@ function App() {
       <Routes>
         <Route
           path=":restaurantName/table/:tableNumber/menu"
-          element={<MenuPage restaurant={restaurant} />}
+          element={<MenuPage restaurant={restaurant} cart={cart} setCart={setCart} />}
+        />
+        <Route
+          path=":restaurantName/table/:tableNumber/cart"
+          element={<CartPage cart={cart} setCart={setCart} />}
         />
         <Route path="/" element={
           <div className="flex flex-col items-center justify-center h-screen text-center">
