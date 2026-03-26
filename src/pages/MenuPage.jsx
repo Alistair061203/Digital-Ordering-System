@@ -52,17 +52,16 @@ function MenuPage({ restaurant }) {
         setActiveCategory={setActiveCategory}
       />
 
-      <main className="p-4 max-w-md mx-auto">
+      <main className="p-4 max-w-md mx-auto md:max-w-5xl">
         <section>
           {loading ? (
             <p className="text-center text-gray-400 animate-pulse mt-8">Loading...</p>
           ) : (
-            <div className="grid gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {displayedItems.map((item) => (
                 <MenuCard 
                   key={item.id} 
                   item={item} 
-                  // 3. Open modal on click
                   onAddToCart={() => setSelectedItem(item)} 
                 />
               ))}
@@ -71,7 +70,6 @@ function MenuPage({ restaurant }) {
         </section>
       </main>
 
-      {/* 4. Render the Modal if an item is selected */}
       {selectedItem && (
         <ItemModal 
           item={selectedItem} 
