@@ -57,12 +57,12 @@ function MenuPage({ restaurant }) {
         setActiveCategory={setActiveCategory}
       />
 
-      <main className="p-4 max-w-md mx-auto">
+      <main className="p-4 max-w-md mx-auto md:max-w-5xl">
         <section>
           {loading ? (
-            <p className="text-center text-gray-400 animate-pulse mt-8">Loading delicious food...</p>
+            <p className="text-center text-gray-400 animate-pulse mt-8">Loading...</p>
           ) : (
-            <div className="grid gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
               {displayedItems.map((item) => (
                 <button
