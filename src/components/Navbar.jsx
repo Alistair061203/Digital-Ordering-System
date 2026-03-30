@@ -3,9 +3,9 @@ import React from 'react';
 import { Link, useMatch } from 'react-router-dom';
 
 function Navbar({ restaurant }) {
-    const tableRoute = useMatch("/:restaurantName/table/:tableNumber/*");
-    
-    const tableNumber = tableRoute?.params?.tableNumber;
+
+    const menuRoute = useMatch("/:restaurantName/table/:tableNumber/*");
+    const tableNumber = menuRoute?.params?.tableNumber;
 
     return (
         <nav className="bg-white p-4 shadow-sm border-b border-gray-200 sticky top-0 z-50 ">
