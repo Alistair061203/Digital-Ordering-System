@@ -25,18 +25,19 @@ function App() {
       <Routes>
         <Route
           path=":restaurantName/table/:tableNumber/menu"
-          // Removed cart props from MenuPage
-          element={<MenuPage restaurant={restaurant} />} 
+          element={<MenuPage restaurant={restaurant} />}
         />
         <Route
           path=":restaurantName/table/:tableNumber/cart"
-          // Removed cart props from CartPage
-          element={<CartPage />} 
+          element={<CartPage />}
         />
         <Route
           path=":restaurantName/table/:tableNumber/payment"
-          // Removed cart props from PaymentPage
-          element={<PaymentPage />} 
+          element={<PaymentPage />}
+        />
+        <Route
+          path=":restaurantName/table/:tableNumber/OrderPage"
+          element={<OrderPage />}
         />
         <Route path="/" element={
           <div className="flex flex-col items-center justify-center h-screen text-center">
