@@ -18,26 +18,26 @@ export const CartProvider = ({ children }) => {
     });
   };
 
-  // ADD THIS FUNCTION
   const updateQuantity = (itemId, delta) => {
     setCart((current) =>
-      current
-        .map((item) =>
-          item.id === itemId
-            ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-            : item
-        )
+      current.map((item) =>
+        item.id === itemId
+          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
+          : item
+      )
     );
   };
 
-  // ADD THIS FUNCTION
   const removeItem = (itemId) => {
     setCart((current) => current.filter((item) => item.id !== itemId));
   };
 
+  const clearCart = () => {
+    setCart([]);
+  };
+
   return (
-    // Update the Provider value to include the new functions
-    <CartContext.Provider value={{ cart, addToCart, updateQuantity, removeItem }}>
+    <CartContext.Provider value={{ cart, addToCart, updateQuantity, removeItem, clearCart }}>
       {children}
     </CartContext.Provider>
   );

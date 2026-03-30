@@ -1,11 +1,16 @@
+// src/pages/PaymentPage.jsx
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useCart } from '../context/CartContext'; // 1. Import the hook
 
-function PaymentPage({ cart, setCart }) {
+function PaymentPage() { // 2. Removed cart and setCart props!
   const { restaurantName, tableNumber } = useParams();
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [status, setStatus] = useState('idle');
   const navigate = useNavigate();
+  
+  // 3. Grab the cart data and the clear function from Context
+  const { cart, clearCart } = useCart(); 
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -16,12 +21,10 @@ function PaymentPage({ cart, setCart }) {
 
     setStatus('submitted');
 
-    // This is a mock submission. Replace with your real API/DB call as needed.
-    // Example: update Supabase PAYMENT table with status = 'Cash' | 'Gcash' etc.
-
+    // This is a mock submission. Replace with your real API/DB call later.
     setTimeout(() => {
       setStatus('done');
-      setCart([]); // Clear cart after payment choice
+      clearCart(); // 4. Call the Context function here to empty the cart!
     }, 700);
   };
 
@@ -95,7 +98,7 @@ function PaymentPage({ cart, setCart }) {
             Your order is now <strong>Pending</strong>. Staff will handle it shortly.
             <button
               onClick={() => navigate(`/${restaurantName}/table/${tableNumber}/menu`)}
-              className="mt-3 block px-4 py-2 bg-red-600 text-white rounded-lg"
+              className="mt-3 block px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
             >
               Back to Menu
             </button>
