@@ -7,6 +7,7 @@ import Navbar from './components/Navbar';
 import CartPage from './pages/CartPage';
 import PaymentPage from './pages/PaymentPage';
 import './App.css';
+import OrderPage from './pages/OrderPage';
 
 function App() {
   const [restaurant, setRestaurant] = useState(null);
@@ -36,7 +37,7 @@ function App() {
           element={<PaymentPage />}
         />
         <Route
-          path=":restaurantName/table/:tableNumber/OrderPage"
+          path=":restaurantName/OrderPage"
           element={<OrderPage />}
         />
         <Route path="/" element={
