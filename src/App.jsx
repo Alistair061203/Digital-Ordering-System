@@ -1,3 +1,4 @@
+// src/App.jsx
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { supabase } from './connectDB';
@@ -5,16 +6,13 @@ import MenuPage from './pages/MenuPage';
 import Navbar from './components/Navbar';
 import CartPage from './pages/CartPage';
 import PaymentPage from './pages/PaymentPage';
-import DisplayRestaurant from './components/DisplayRestaurant';
-import './App.css'
+import './App.css';
 
 function App() {
   const [restaurant, setRestaurant] = useState(null);
-  const [cart, setCart] = useState([]);
 
   useEffect(() => {
     async function getRestaurant() {
-      // Get your restaurant details from Supabase
       const { data } = await supabase.from('RESTAURANT').select('*').limit(1).single();
       setRestaurant(data);
     }
@@ -27,15 +25,18 @@ function App() {
       <Routes>
         <Route
           path=":restaurantName/table/:tableNumber/menu"
-          element={<MenuPage restaurant={restaurant} cart={cart} setCart={setCart} />}
+          // Removed cart props from MenuPage
+          element={<MenuPage restaurant={restaurant} />} 
         />
         <Route
           path=":restaurantName/table/:tableNumber/cart"
-          element={<CartPage cart={cart} setCart={setCart} />}
+          // Removed cart props from CartPage
+          element={<CartPage />} 
         />
         <Route
           path=":restaurantName/table/:tableNumber/payment"
-          element={<PaymentPage cart={cart} setCart={setCart} />}
+          // Removed cart props from PaymentPage
+          element={<PaymentPage />} 
         />
         <Route path="/" element={
           <div className="flex flex-col items-center justify-center h-screen text-center">

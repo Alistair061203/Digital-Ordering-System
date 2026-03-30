@@ -4,7 +4,8 @@ import { useParams } from 'react-router-dom';
 import { supabase } from '/src/connectDB';
 import Category from '../components/Category';
 import MenuCard from '../components/MenuCard';
-import ItemModal from '../components/ItemModal'; // 1. Import the new modal
+import ItemModal from '../components/ItemModal';
+import CartBar from '../components/CartBar';
 
 function MenuPage({ restaurant }) {
   const { restaurantName, tableNumber } = useParams();
@@ -12,8 +13,6 @@ function MenuPage({ restaurant }) {
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('all');
   const [categories, setCategories] = useState([{ id: 'all', name: 'All Dishes' }]);
-
-  // 2. State for the Popup
   const [selectedItem, setSelectedItem] = useState(null);
 
   useEffect(() => {
@@ -45,7 +44,7 @@ function MenuPage({ restaurant }) {
     : menuItems.filter(item => item.category_id === activeCategory);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-24">
       <Category
         categories={categories}
         activeCategory={activeCategory}
@@ -69,6 +68,8 @@ function MenuPage({ restaurant }) {
           )}
         </section>
       </main>
+
+      <CartBar />
 
       {selectedItem && (
         <ItemModal 

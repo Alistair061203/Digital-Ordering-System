@@ -1,23 +1,13 @@
-import React from 'react';
+// src/components/AddToCart.jsx
+import React, { useState } from 'react';
+import { useCart } from '../context/CartContext'; // 1. Import the hook
 
-const AddToCart = ({ cart, setCart }) => {
-  const updateQuantity = (itemId, delta) => {
-    setCart((current) =>
-      current
-        .map((item) =>
-          item.id === itemId
-            ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-            : item
-        )
-        .filter((item) => item.quantity > 0)
-    );
-  };
-
-  const removeItem = (itemId) => {
-    setCart((current) => current.filter((item) => item.id !== itemId));
-  };
-
-  const [specialInstruction, setSpecialInstruction] = React.useState('');
+const AddToCart = () => {
+  // 2. Pull everything you need directly from the Context!
+  const { cart, updateQuantity, removeItem } = useCart();
+  
+  const [specialInstruction, setSpecialInstruction] = useState('');
+  
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const total = Number(subtotal.toFixed(2));
 
@@ -40,12 +30,13 @@ const AddToCart = ({ cart, setCart }) => {
                   <h2 className="font-bold text-lg">{item.name}</h2>
                   <p className="text-red-600 font-semibold">₱{item.price.toFixed(2)}</p>
                   <div className="mt-2 flex items-center gap-2">
-                    <button onClick={() => updateQuantity(item.id, -1)} className="px-2 py-1 bg-gray-100 rounded">-</button>
-                    <span className="px-2">{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.id, 1)} className="px-2 py-1 bg-gray-100 rounded">+</button>
+                    {/* These buttons now trigger the Context functions automatically */}
+                    <button onClick={() => updateQuantity(item.id, -1)} className="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded transition-colors">-</button>
+                    <span className="px-2 font-bold">{item.quantity}</span>
+                    <button onClick={() => updateQuantity(item.id, 1)} className="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded transition-colors">+</button>
                   </div>
                 </div>
-                <button onClick={() => removeItem(item.id)} className="text-sm font-bold text-red-600">Remove</button>
+                <button onClick={() => removeItem(item.id)} className="text-sm font-bold text-red-600 hover:text-red-800 transition-colors">Remove</button>
               </div>
             ))
           )}
@@ -58,37 +49,26 @@ const AddToCart = ({ cart, setCart }) => {
               <span>Subtotal</span>
               <span>₱{subtotal.toFixed(2)}</span>
             </div>
-            <hr />
-            <div className="flex justify-between text-2xl font-black">
+            <hr className="border-gray-300" />
+            <div className="flex justify-between text-2xl font-black text-gray-900">
               <span>Total</span>
               <span>₱{total.toFixed(2)}</span>
             </div>
           </div>
 
-          <div className="mt-4">
-            <label className="block text-sm font-semibold mb-1" htmlFor="special-instruction">
+          <div className="mt-6">
+            <label className="block text-sm font-semibold mb-2" htmlFor="special-instruction">
               Special Instructions
             </label>
             <textarea
               id="special-instruction"
               value={specialInstruction}
               onChange={(e) => setSpecialInstruction(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:border-red-500"
+              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all"
               rows={3}
               placeholder="No onions, extra sauce, allergies, etc."
             />
           </div>
-
-          <button
-            disabled={cart.length === 0}
-            onClick={() => {
-              console.log('Order placed:', { cart, specialInstruction, total });
-              alert('Your order is placed! Special instructions saved.');
-            }}
-            className="w-full mt-5 py-3 rounded-xl text-white font-bold bg-red-600 disabled:bg-gray-300"
-          >
-            Place Your Order
-          </button>
         </div>
       </div>
     </div>
