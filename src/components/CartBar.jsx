@@ -1,6 +1,6 @@
 // src/components/CartBar.jsx
 import React from 'react';
-import { ShoppingBag } from 'lucide-react'; // Or use standard SVG if you don't have lucide
+import { ShoppingBag } from 'lucide-react'; 
 import { useCart } from '../context/CartContext';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -8,7 +8,6 @@ function CartBar() {
   const { cart } = useCart();
   const navigate = useNavigate();
   const { restaurantName, tableNumber } = useParams();
-
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 

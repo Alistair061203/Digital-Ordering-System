@@ -1,9 +1,8 @@
 // src/components/AddToCart.jsx
 import React, { useState } from 'react';
-import { useCart } from '../context/CartContext'; // 1. Import the hook
+import { useCart } from '../context/CartContext'; 
 
 const AddToCart = () => {
-  // 2. Pull everything you need directly from the Context!
   const { cart, updateQuantity, removeItem } = useCart();
   
   const [specialInstruction, setSpecialInstruction] = useState('');
@@ -30,7 +29,6 @@ const AddToCart = () => {
                   <h2 className="font-bold text-lg">{item.name}</h2>
                   <p className="text-red-600 font-semibold">₱{item.price.toFixed(2)}</p>
                   <div className="mt-2 flex items-center gap-2">
-                    {/* These buttons now trigger the Context functions automatically */}
                     <button onClick={() => updateQuantity(item.id, -1)} className="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded transition-colors">-</button>
                     <span className="px-2 font-bold">{item.quantity}</span>
                     <button onClick={() => updateQuantity(item.id, 1)} className="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded transition-colors">+</button>
