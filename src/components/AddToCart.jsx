@@ -1,11 +1,9 @@
 // src/components/AddToCart.jsx
-import React, { useState } from 'react';
+import React from 'react';
 import { useCart } from '../context/CartContext'; 
 
 const AddToCart = () => {
-  const { cart, updateQuantity, removeItem } = useCart();
-  
-  const [specialInstruction, setSpecialInstruction] = useState('');
+  const { cart, updateQuantity, removeItem, specialInstructions, setSpecialInstructions } = useCart();
   
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const total = Number(subtotal.toFixed(2));
@@ -60,8 +58,8 @@ const AddToCart = () => {
             </label>
             <textarea
               id="special-instruction"
-              value={specialInstruction}
-              onChange={(e) => setSpecialInstruction(e.target.value)}
+              value={specialInstructions}
+              onChange={(e) => setSpecialInstructions(e.target.value)}
               className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all"
               rows={3}
               placeholder="No onions, extra sauce, allergies, etc."

@@ -1,16 +1,14 @@
 // src/pages/PaymentPage.jsx
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useCart } from '../context/CartContext'; // 1. Import the hook
+import { useCart } from '../context/CartContext';
 
-function PaymentPage() { // 2. Removed cart and setCart props!
+function PaymentPage() {
   const { restaurantName, tableNumber } = useParams();
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [status, setStatus] = useState('idle');
   const navigate = useNavigate();
-  
-  // 3. Grab the cart data and the clear function from Context
-  const { cart, clearCart } = useCart(); 
+  const { cart, clearCart } = useCart();
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -21,10 +19,9 @@ function PaymentPage() { // 2. Removed cart and setCart props!
 
     setStatus('submitted');
 
-    // This is a mock submission. Replace with your real API/DB call later.
     setTimeout(() => {
       setStatus('done');
-      clearCart(); // 4. Call the Context function here to empty the cart!
+      clearCart();
     }, 700);
   };
 

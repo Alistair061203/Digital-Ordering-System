@@ -12,7 +12,7 @@ const OrderPage = () => {
         setLoading(true);
         const { data, error } = await supabase
           .from('ORDER_SAMPLE')
-          .select('id, created_at, table_number, status, total_price, special_instructions, payment_status')
+          .select('id, created_at, table_number, status, total_price, customizations, payment_status')
           .eq('is_active', true) 
           .order('created_at', { ascending: false }); 
 
