@@ -1,11 +1,15 @@
 // src/components/AddToCart.jsx
-import React, { useState } from 'react';
+import React from 'react';
 import { useCart } from '../context/CartContext'; 
 
 const AddToCart = () => {
-  const { cart, updateQuantity, removeItem } = useCart();
-  
-  const [specialInstruction, setSpecialInstruction] = useState('');
+  const { 
+    cart, 
+    updateQuantity, 
+    removeItem, 
+    specialInstructions, 
+    setSpecialInstructions 
+  } = useCart();
   
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const total = Number(subtotal.toFixed(2));
@@ -13,11 +17,14 @@ const AddToCart = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-2xl overflow-hidden">
+        
+        {/* Header */}
         <div className="bg-red-600 text-white p-6">
           <h1 className="text-3xl font-black">Review Your Order</h1>
           <p className="text-sm opacity-80 mt-1">Carefully curated selections for your dining experience.</p>
         </div>
 
+        {/* Cart Items */}
         <div className="p-6 space-y-4">
           {cart.length === 0 ? (
             <p className="text-gray-500 text-center py-8">Your cart is empty. Add something from the menu.</p>
@@ -29,9 +36,9 @@ const AddToCart = () => {
                   <h2 className="font-bold text-lg">{item.name}</h2>
                   <p className="text-red-600 font-semibold">₱{item.price.toFixed(2)}</p>
                   <div className="mt-2 flex items-center gap-2">
-                    <button onClick={() => updateQuantity(item.id, -1)} className="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded transition-colors">-</button>
+                    <button onClick={() => updateQuantity(item.id, -1)} className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded font-bold transition-colors">-</button>
                     <span className="px-2 font-bold">{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.id, 1)} className="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded transition-colors">+</button>
+                    <button onClick={() => updateQuantity(item.id, 1)} className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded font-bold transition-colors">+</button>
                   </div>
                 </div>
                 <button onClick={() => removeItem(item.id)} className="text-sm font-bold text-red-600 hover:text-red-800 transition-colors">Remove</button>
@@ -40,6 +47,7 @@ const AddToCart = () => {
           )}
         </div>
 
+        {/* Order Totals & Instructions */}
         <div className="bg-gray-100 p-6">
           <h3 className="text-xl font-bold mb-3">Order Total</h3>
           <div className="space-y-2 text-gray-700">
@@ -54,20 +62,22 @@ const AddToCart = () => {
             </div>
           </div>
 
+          {/* Special Instructions Textarea connected to Context */}
           <div className="mt-6">
             <label className="block text-sm font-semibold mb-2" htmlFor="special-instruction">
               Special Instructions
             </label>
             <textarea
               id="special-instruction"
-              value={specialInstruction}
-              onChange={(e) => setSpecialInstruction(e.target.value)}
+              value={specialInstructions}
+              onChange={(e) => setSpecialInstructions(e.target.value)}
               className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all"
               rows={3}
               placeholder="No onions, extra sauce, allergies, etc."
             />
           </div>
         </div>
+
       </div>
     </div>
   );

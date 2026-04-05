@@ -5,6 +5,9 @@ const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
+  
+  // NEW: Add a state specifically for the instructions
+  const [specialInstructions, setSpecialInstructions] = useState('');
 
   const addToCart = (item, quantity) => {
     setCart((prevCart) => {
@@ -21,9 +24,7 @@ export const CartProvider = ({ children }) => {
   const updateQuantity = (itemId, delta) => {
     setCart((current) =>
       current.map((item) =>
-        item.id === itemId
-          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-          : item
+        item.id === itemId ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
       )
     );
   };
@@ -34,10 +35,12 @@ export const CartProvider = ({ children }) => {
 
   const clearCart = () => {
     setCart([]);
+    setSpecialInstructions(''); // NEW: Clear the instructions when the cart is emptied
   };
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, updateQuantity, removeItem, clearCart }}>
+    // NEW: Make sure to expose specialInstructions and setSpecialInstructions here!
+    <CartContext.Provider value={{ cart, addToCart, updateQuantity, removeItem, clearCart, specialInstructions, setSpecialInstructions }}>
       {children}
     </CartContext.Provider>
   );

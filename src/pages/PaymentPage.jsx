@@ -1,16 +1,17 @@
 // src/pages/PaymentPage.jsx
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
-import { supabase } from '../connectDB';
+import { useCart } from '../context/CartContext'; 
+import { supabase } from '../connectDB'; 
 
-function PaymentPage() {
+function PaymentPage() { 
   const { restaurantName, tableNumber } = useParams();
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [status, setStatus] = useState('idle');
   const navigate = useNavigate();
-
-  const { cart, clearCart } = useCart();
+  
+  // Grab the cart data, clear function, and special instructions from Context
+  const { cart, clearCart, specialInstructions } = useCart(); 
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -26,14 +27,13 @@ function PaymentPage() {
       const orderPayload = {
         table_number: tableNumber,
         total_price: subtotal,
-        status: 'Pending',
+        status: 'Pending', 
         payment_status: paymentMethod === 'cash' ? 'Unpaid' : 'Paid',
         is_active: true,
-        special_instructions: 'None', // (We can pass real instructions later)
-        order_items: cart // <-- This saves the whole cart into that new JSONB column!
+        special_instructions: specialInstructions || 'None', // Uses what the customer typed
+        order_items: cart // Saves the whole array as JSONB
       };
 
-      // 2. Insert into Supabase
       const { error } = await supabase
         .from('ORDER_SAMPLE')
         .insert([orderPayload]);
@@ -42,12 +42,12 @@ function PaymentPage() {
 
       // 3. Success! Clear the cart.
       setStatus('done');
-      clearCart();
+      clearCart(); 
 
     } catch (error) {
       console.error("Error saving to database:", error.message);
       alert("Failed to send order. Please try again.");
-      setStatus('idle');
+      setStatus('idle'); 
     }
   };
 
@@ -90,24 +90,23 @@ function PaymentPage() {
         <h2 className="text-xl font-semibold mb-2">Payment Method</h2>
         <div className="flex gap-2 flex-wrap mb-5">
           <button
-            className={`px-4 py-2 rounded-lg border ${paymentMethod === 'cash' ? 'bg-red-600 text-white border-red-600' : 'bg-white text-gray-700 border-gray-300'}`}
+            className={`px-4 py-2 rounded-lg border font-medium ${paymentMethod === 'cash' ? 'bg-red-600 text-white border-red-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
             onClick={() => setPaymentMethod('cash')}
           >
             Pay at Counter (Cash)
           </button>
           <button
-            className={`px-4 py-2 rounded-lg border ${paymentMethod === 'online' ? 'bg-red-600 text-white border-red-600' : 'bg-white text-gray-700 border-gray-300'}`}
+            className={`px-4 py-2 rounded-lg border font-medium ${paymentMethod === 'online' ? 'bg-red-600 text-white border-red-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
             onClick={() => setPaymentMethod('online')}
           >
-            Pay Online
+            Pay Online 
           </button>
         </div>
-
 
         <button
           disabled={status === 'submitted' || !cart.length}
           onClick={handleSubmit}
-          className="w-full py-3 rounded-xl text-white bg-red-600 disabled:bg-gray-300 disabled:text-gray-600"
+          className="w-full py-3 rounded-xl text-white font-bold bg-red-600 disabled:bg-gray-300 disabled:text-gray-500 transition-colors"
         >
           {status === 'idle' && 'Confirm Payment'}
           {status === 'submitted' && 'Processing...'}
@@ -121,7 +120,7 @@ function PaymentPage() {
             Your order is now <strong>Pending</strong>. Staff will handle it shortly.
             <button
               onClick={() => navigate(`/${restaurantName}/table/${tableNumber}/menu`)}
-              className="mt-3 block px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              className="mt-4 block w-full text-center px-4 py-3 bg-green-700 text-white font-bold rounded-xl hover:bg-green-800 transition-colors"
             >
               Back to Menu
             </button>

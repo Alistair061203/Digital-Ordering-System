@@ -8,6 +8,9 @@ import CartPage from './pages/CartPage';
 import PaymentPage from './pages/PaymentPage';
 import './App.css';
 import OrderPage from './pages/OrderPage';
+import ArchivedPage from './pages/ArchivedPage';
+
+
 
 function App() {
   const [restaurant, setRestaurant] = useState(null);
@@ -35,6 +38,9 @@ function App() {
         <Route
           path=":restaurantName/table/:tableNumber/payment"
           element={<PaymentPage />}
+        />
+        <Route path=":restaurantName/archived"
+          element={<ArchivedPage />} 
         />
         <Route
           path=":restaurantName/OrderPage"
