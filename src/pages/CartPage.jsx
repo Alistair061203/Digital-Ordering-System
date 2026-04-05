@@ -11,7 +11,6 @@ function CartPage() {
 
   return (
     <div>
-      {/* 3. No more props needed here! */}
       <AddToCart /> 
       
       <div className="max-w-3xl mx-auto p-4">

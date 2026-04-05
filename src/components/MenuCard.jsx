@@ -4,7 +4,6 @@ import React from 'react';
 function MenuCard({ item, onAddToCart }) {
   return (
     <button
-      // We trigger the function passed down from the parent
       onClick={() => onAddToCart(item)}
       className="text-left w-full transition-transform active:scale-[0.98] bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col"
     >

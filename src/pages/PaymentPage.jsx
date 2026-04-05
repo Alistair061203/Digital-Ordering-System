@@ -1,31 +1,54 @@
 // src/pages/PaymentPage.jsx
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useCart } from '../context/CartContext'; // 1. Import the hook
+import { useCart } from '../context/CartContext';
+import { supabase } from '../connectDB';
 
-function PaymentPage() { // 2. Removed cart and setCart props!
+function PaymentPage() {
   const { restaurantName, tableNumber } = useParams();
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [status, setStatus] = useState('idle');
   const navigate = useNavigate();
-  
-  // 3. Grab the cart data and the clear function from Context
-  const { cart, clearCart } = useCart(); 
+
+  const { cart, clearCart } = useCart();
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!cart.length) {
       return;
     }
 
     setStatus('submitted');
 
-    // This is a mock submission. Replace with your real API/DB call later.
-    setTimeout(() => {
+    try {
+      // 1. Prepare the exact data matching your Supabase columns
+      const orderPayload = {
+        table_number: tableNumber,
+        total_price: subtotal,
+        status: 'Pending',
+        payment_status: paymentMethod === 'cash' ? 'Unpaid' : 'Paid',
+        is_active: true,
+        special_instructions: 'None', // (We can pass real instructions later)
+        order_items: cart // <-- This saves the whole cart into that new JSONB column!
+      };
+
+      // 2. Insert into Supabase
+      const { error } = await supabase
+        .from('ORDER_SAMPLE')
+        .insert([orderPayload]);
+
+      if (error) throw error;
+
+      // 3. Success! Clear the cart.
       setStatus('done');
-      clearCart(); // 4. Call the Context function here to empty the cart!
-    }, 700);
+      clearCart();
+
+    } catch (error) {
+      console.error("Error saving to database:", error.message);
+      alert("Failed to send order. Please try again.");
+      setStatus('idle');
+    }
   };
 
   return (
@@ -76,7 +99,7 @@ function PaymentPage() { // 2. Removed cart and setCart props!
             className={`px-4 py-2 rounded-lg border ${paymentMethod === 'online' ? 'bg-red-600 text-white border-red-600' : 'bg-white text-gray-700 border-gray-300'}`}
             onClick={() => setPaymentMethod('online')}
           >
-            Pay Online 
+            Pay Online
           </button>
         </div>
 
