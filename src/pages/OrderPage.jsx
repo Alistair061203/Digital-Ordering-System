@@ -4,7 +4,7 @@ import { supabase } from '../connectDB';
 import { useNavigate, useParams } from 'react-router-dom';
 import OrderSummaryCards from '../components/OrderSummaryCards';
 import OrderTableRow from '../components/OrderTableRow';
-import { Archive, ClipboardList } from 'lucide-react';
+import { Archive, ClipboardList, ArrowLeft } from 'lucide-react';
 
 const OrderPage = () => {
   const navigate = useNavigate();
@@ -143,13 +143,22 @@ const OrderPage = () => {
             <p className="text-[10px] font-black uppercase tracking-[0.35em] text-[#b23a2f] mb-2">Live Feed</p>
             <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tighter">Active Orders</h1>
           </div>
-          <button 
-            onClick={() => navigate(`/${restaurantName}/admin/archived`)}
-            className="bg-white border border-gray-200 text-gray-600 font-bold py-3 px-6 rounded-full shadow-sm hover:bg-gray-50 transition-all flex items-center gap-2 text-xs uppercase tracking-widest"
-          >
-            <Archive size={16} />
-            Archived
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => navigate(`/${restaurantName}/admin`)}
+              className="bg-gray-200 text-gray-700 font-bold py-2.5 px-5 rounded-full shadow-sm hover:bg-gray-300 transition-colors flex items-center gap-2"
+            >
+              <ArrowLeft size={16} strokeWidth={2.5} />
+              Back to Dashboard
+            </button>
+            <button 
+              onClick={() => navigate(`/${restaurantName}/admin/archived`)}
+              className="bg-white border border-gray-200 text-gray-600 font-bold py-3 px-6 rounded-full shadow-sm hover:bg-gray-50 transition-all flex items-center gap-2 text-xs uppercase tracking-widest"
+            >
+              <Archive size={16} />
+              Archived
+            </button>
+          </div>
         </div>
 
         {/* Passing the dailyRevenue (calculated from ALL today's paid orders) */}

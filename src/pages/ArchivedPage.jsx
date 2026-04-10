@@ -72,10 +72,10 @@ const ArchivedPage = () => {
                         <p className="text-gray-500 mt-1">Review past orders or restore them to the active queue.</p>
                     </div>
                     <button
-                        onClick={() => navigate(-1)} // Goes back to the previous page
+                        onClick={() => navigate(`/${restaurantName}/admin`)}
                         className="bg-gray-200 text-gray-700 font-bold py-2.5 px-5 rounded-full shadow-sm hover:bg-gray-300 transition-colors flex items-center gap-2"
                     >
-                        ← Back to Active Orders
+                        ← Back to Dashboard
                     </button>
                 </div>
 

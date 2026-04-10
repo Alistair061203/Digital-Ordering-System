@@ -148,24 +148,29 @@ function AdminMenuPage({ restaurant }) {
     <div className="min-h-screen bg-[#FDFCFB] text-[#1a1a1a]">
       {/* --- TOP NAVIGATION --- */}
       <header className="sticky top-0 z-30 bg-white/60 backdrop-blur-xl border-b border-gray-100 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div className="max-w-7xl mx-auto flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           
           {/* UPDATED: Added Back Button beside Inventory Header */}
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => navigate(`/${restaurantName || restaurant?.name}/admin`)}
-              className="p-2 -ml-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-black transition-colors"
-              aria-label="Back to Admin Dashboard"
-            >
-              <ArrowLeft size={20} strokeWidth={2.5} />
-            </button>
-            <div>
-              <h1 className="text-xl font-black uppercase tracking-tighter">Inventory</h1>
-              <p className="text-[10px] font-bold text-orange-500 uppercase tracking-widest">{restaurant?.name}</p>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <button
+                onClick={() => navigate(`/${restaurantName || restaurant?.name}/admin`)}
+                className="inline-flex items-center gap-2 bg-gray-200 text-gray-700 font-bold py-2.5 px-3 sm:px-5 rounded-full shadow-sm hover:bg-gray-300 transition-colors"
+                aria-label="Back to Dashboard"
+              >
+                <ArrowLeft size={18} strokeWidth={2.5} />
+                <span className="hidden sm:inline">Back to Dashboard</span>
+              </button>
+              <div className="min-w-0">
+                <h1 className="text-xl font-black uppercase tracking-tighter truncate">Inventory</h1>
+                <p className="text-[10px] font-bold text-orange-500 uppercase tracking-widest truncate">
+                  {restaurant?.name}
+                </p>
+              </div>
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
             <div className="relative hidden sm:block">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
               <input 
@@ -178,7 +183,7 @@ function AdminMenuPage({ restaurant }) {
             </div>
             <button 
               onClick={() => openDrawer()}
-              className="bg-black text-white px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:scale-105 transition-transform"
+              className="w-full sm:w-auto bg-black text-white px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-105 transition-transform"
             >
               <Plus size={14} /> New Entry
             </button>
