@@ -96,6 +96,10 @@ function App() {
             path=":restaurantName/admin/OrderPage"
             element={isAdminAuthenticated ? <OrderPage /> : <AdminLogin />}
           />
+           <Route
+            path=":restaurantName/admin/Menu"
+            element={isAdminAuthenticated ? <MenuPage /> : <AdminLogin />}
+          />
           
           {/* Landing Page */}
           <Route path="/" element={
