@@ -1,6 +1,7 @@
 // src/components/Navbar.jsx
 import React from 'react';
 import { Link, useMatch, useNavigate } from 'react-router-dom';
+import { Bell, ShoppingBag } from 'lucide-react'; // Using Lucide for both icons to match!
 
 function Navbar({ restaurant }) {
     const navigate = useNavigate();
@@ -27,12 +28,12 @@ function Navbar({ restaurant }) {
 
     return (
         <nav className="bg-neutral-surface/90 backdrop-blur-md p-4 sticky top-0 z-50">
-            <div className="max-w-7xl mx-auto grid grid-cols-3 items-center px-4 md:px-8">
+            <div className="max-w-7xl mx-auto grid grid-cols-3 items-center px-1 md:px-8">
 
                 {/* Left Side: Table Number */}
                 <div className="flex items-center justify-start">
                     {tableNumber && (
-                        <div className="font-bold text-[10px] text-tertiary uppercase tracking-widest bg-tertiary/10 px-3 py-1.5 rounded-md border border-tertiary/20">
+                        <div className="font-bold text-[10px] text-tertiary uppercase tracking-widest bg-tertiary/10 px-3 py-1.5 rounded-md border border-tertiary/20 whitespace-nowrap">
                             Table {tableNumber}
                         </div>
                     )}
@@ -46,7 +47,7 @@ function Navbar({ restaurant }) {
                         </span>
                     </Link>
 
-                    {/* Only show menu links if we are active on a table */}
+                    {/* Desktop Navigation Links */}
                     {tableNumber && (
                         <div className="hidden md:flex gap-6">
                             <button
@@ -61,7 +62,6 @@ function Navbar({ restaurant }) {
                             >
                                 Cart
                             </button>
-                            {/* NEW: Track Order Link */}
                             <button
                                 onClick={() => navigate(`/${restaurantName}/table/${tableNumber}/status`)}
                                 className="text-xs font-bold text-[#b23a2f] hover:text-primary transition-colors uppercase tracking-widest"
@@ -73,24 +73,34 @@ function Navbar({ restaurant }) {
                 </div>
 
                 {/* Right Side: Actions & Logo Profile Avatar */}
-                <div className="flex items-center justify-end gap-6">
-                    <div className="flex items-center gap-4 border-l border-gray-100 pl-6">
+                <div className="flex items-center justify-end">
+                    <div className="flex items-center gap-3 border-l border-gray-100 pl-3 md:pl-6 md:gap-4">
 
-                        {/* Only show the cart icon if we are active on a table */}
                         {tableNumber && (
-                            <button
-                                onClick={() => navigate(`/${restaurantName}/table/${tableNumber}/cart`)}
-                                className="relative text-secondary hover:text-primary transition-colors pr-2"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                                </svg>
-                                <span className="absolute -top-1 -right-1 bg-primary w-2 h-2 rounded-full border-2 border-white"></span>
-                            </button>
+                            <>
+                                {/* Notification / Track Order Icon (Mobile Only) */}
+                                <button
+                                    onClick={() => navigate(`/${restaurantName}/table/${tableNumber}/status`)}
+                                    className="relative text-secondary hover:text-[#b23a2f] transition-colors p-1 md:hidden"
+                                    aria-label="Track Order Status"
+                                >
+                                    <Bell size={20} strokeWidth={2.5} />
+                                </button>
+
+                                {/* Cart Icon (Shopping Bag to match your design) */}
+                                <button
+                                    onClick={() => navigate(`/${restaurantName}/table/${tableNumber}/cart`)}
+                                    className="relative text-secondary hover:text-primary transition-colors p-1 md:pr-2"
+                                    aria-label="View Cart"
+                                >
+                                    <ShoppingBag size={20} strokeWidth={2.5} />
+                                    <span className="absolute top-0 right-0 md:-top-1 md:-right-1 bg-primary w-2.5 h-2.5 rounded-full border-2 border-white"></span>
+                                </button>
+                            </>
                         )}
 
                         {/* Profile Avatar */}
-                        <button className="w-9 h-9 rounded-full bg-secondary overflow-hidden border border-gray-100 shadow-sm transition-transform hover:scale-105 flex items-center justify-center">
+                        <button className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-secondary overflow-hidden border border-gray-100 shadow-sm transition-transform hover:scale-105 flex items-center justify-center flex-shrink-0">
                             {logoSrc ? (
                                 <img
                                     src={logoSrc}
