@@ -1,8 +1,13 @@
+// src/pages/AdminMenuPage.jsx
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../connectDB';
-import { Plus, Trash2, X, Search, Image as ImageIcon, Check, ChevronRight, Loader2 } from 'lucide-react';
+import { Plus, Trash2, X, Search, Image as ImageIcon, Check, ChevronRight, Loader2, ArrowLeft } from 'lucide-react';
 
 function AdminMenuPage({ restaurant }) {
+  const navigate = useNavigate();
+  const { restaurantName } = useParams();
+
   const [menuItems, setMenuItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -144,9 +149,20 @@ function AdminMenuPage({ restaurant }) {
       {/* --- TOP NAVIGATION --- */}
       <header className="sticky top-0 z-30 bg-white/60 backdrop-blur-xl border-b border-gray-100 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-black uppercase tracking-tighter">Inventory</h1>
-            <p className="text-[10px] font-bold text-orange-500 uppercase tracking-widest">{restaurant?.name}</p>
+          
+          {/* UPDATED: Added Back Button beside Inventory Header */}
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => navigate(`/${restaurantName || restaurant?.name}/admin`)}
+              className="p-2 -ml-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-black transition-colors"
+              aria-label="Back to Admin Dashboard"
+            >
+              <ArrowLeft size={20} strokeWidth={2.5} />
+            </button>
+            <div>
+              <h1 className="text-xl font-black uppercase tracking-tighter">Inventory</h1>
+              <p className="text-[10px] font-bold text-orange-500 uppercase tracking-widest">{restaurant?.name}</p>
+            </div>
           </div>
           
           <div className="flex items-center gap-4">
