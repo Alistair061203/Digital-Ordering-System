@@ -1,24 +1,85 @@
 // src/components/Navbar.jsx
 import React from 'react';
-import { Link, useMatch } from 'react-router-dom';
+import { Link, useParams, useMatch } from 'react-router-dom';
 
 function Navbar({ restaurant }) {
-
+    const { restaurantName } = useParams();
     const menuRoute = useMatch("/:restaurantName/table/:tableNumber/*");
     const tableNumber = menuRoute?.params?.tableNumber;
 
+    const getImageUrl = (url) => {
+        if (!url) return null;
+        if (url.includes('drive.google.com')) {
+            const fileId = url.split('/d/')[1]?.split('/')[0] || url.split('id=')[1]?.split('&')[0];
+            return fileId ? `https://drive.google.com/uc?export=view&id=${fileId}` : url;
+        }
+        return url;
+    };
+
+    const logoSrc = getImageUrl(restaurant?.logo_url);
+
     return (
-        <nav className="bg-white p-4 shadow-sm border-b border-gray-200 sticky top-0 z-50 ">
-            <div className="max-w-7xl mx-auto flex justify-between items-center">
-                <div>
-                    <Link to="/" className="text-2xl font-black text-neutral flex items-center gap-2">
-                        {restaurant?.name || 'BullEyeOrg'}
-                    </Link>
+        <nav className="bg-neutral-surface/90 backdrop-blur-md p-4 border-b border-gray-100 sticky top-0 z-50">
+            <div className="max-w-7xl mx-auto grid grid-cols-3 items-center px-4 md:px-8">
+
+                {/* Left Side: Table Number (Now subtle on the far left) */}
+                <div className="flex items-center justify-start">
+                    {tableNumber && (
+                        <div className="font-bold text-[10px] text-tertiary uppercase tracking-widest bg-tertiary/10 px-3 py-1.5 rounded-md border border-tertiary/20">
+                            Table {tableNumber}
+                        </div>
+                    )}
                 </div>
 
-                <div className="font-semibold text-sm text-gray-700 uppercase tracking-wide mr-3">
-                    {tableNumber ? `TABLE ${tableNumber}` : ''}
+                {/* Center: Branding & Navigation */}
+                <div className="flex items-center justify-center gap-8">
+                    <Link to={`/${restaurantName}`} className="flex items-center gap-3 group">
+                        <span className="text-xl font-headline font-extrabold text-secondary tracking-tighter">
+                            {/* If restaurant data exists, use its real name, otherwise use the URL param */}
+                            {restaurant?.name || restaurantName}
+                        </span>
+                    </Link>
+
+                    <div className="hidden md:flex gap-6">
+                        {['Menu', 'Track Order'].map((item) => (
+                            <button key={item} className="text-xs font-bold text-gray-400 hover:text-primary transition-colors uppercase tracking-widest">
+                                {item}
+                            </button>
+                        ))}
+                    </div>
                 </div>
+
+                {/* Right Side: Actions & Logo Profile Avatar */}
+                <div className="flex items-center justify-end gap-6">
+                    <div className="flex items-center gap-4 border-l border-gray-100 pl-6">
+                        <button className="relative text-secondary hover:text-primary transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                            </svg>
+                            <span className="absolute -top-1 -right-1 bg-primary w-2 h-2 rounded-full border-2 border-white"></span>
+                        </button>
+
+                        {/* Profile Avatar: Replaced 'BU' with the Restaurant Logo */}
+                        <button className="w-9 h-9 rounded-full bg-secondary overflow-hidden border border-gray-100 shadow-sm transition-transform hover:scale-105 flex items-center justify-center">
+                            {logoSrc ? (
+                                <img
+                                    src={logoSrc}
+                                    alt="Profile"
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        e.target.style.display = 'none';
+                                        e.target.nextSibling.style.display = 'flex';
+                                    }}
+                                />
+                            ) : null}
+                            {/* Fallback initials if logo fails to load */}
+                            <span className={`${logoSrc ? 'hidden' : 'flex'} text-[10px] font-bold text-white uppercase`}>
+                                {restaurant?.name?.substring(0, 2) || 'BE'}
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </nav>
     );

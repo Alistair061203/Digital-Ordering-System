@@ -1,8 +1,34 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #E65100;
-  --color-secondary: #BF360C;
-  --color-tertiary: #FAD2A1;
-  --color-neutral: #263238;
+  /* Our New Colors */
+  --color-primary: #C05E42;
+  --color-secondary: #2E2E2E;
+  --color-tertiary: #008983;
+  --color-neutral: #F9F6F1;
+  --color-neutral-surface: #FFFFFF;
+
+  /* Our New Fonts */
+  --font-headline: "Epilogue", sans-serif;
+  --font-body: "Work Sans", sans-serif;
+
+  /* Custom Shadows */
+  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+@layer base {
+  /* Automatically applies to the whole website */
+  body {
+    background-color: var(--color-neutral);
+    font-family: var(--font-body);
+    color: var(--color-secondary);
+    -webkit-font-smoothing: antialiased;
+    margin: 0;
+  }
+
+  /* Make all headers use the bold Epilogue font */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-headline);
+    font-weight: bold;
+  }
 }
