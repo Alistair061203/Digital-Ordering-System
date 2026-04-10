@@ -2,6 +2,11 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { supabase } from './connectDB';
+
+// 1. IMPORT YOUR NEW PROVIDER AND LANDING PAGE
+import { CartProvider } from './context/CartContext';
+import LandingPage from './pages/LandingPage';
+
 import MenuPage from './pages/MenuPage';
 import Navbar from './components/Navbar';
 import CartPage from './pages/CartPage';
@@ -62,59 +67,54 @@ function App() {
   }, [window.location.pathname]);
 
   return (
-    <BrowserRouter>
-      {/* Wrapper to ensure our neutral background color from our design system is everywhere */}
-      <div className="min-h-screen bg-neutral">
-        <Navbar restaurant={restaurant} />
-        
-        <Routes>
-          <Route
-            path=":restaurantName/table/:tableNumber/menu"
-            element={<MenuPage restaurant={restaurant} />}
-          />
-          <Route
-            path=":restaurantName/table/:tableNumber/cart"
-            element={<CartPage />}
-          />
-          <Route
-            path=":restaurantName/table/:tableNumber/payment"
-            element={<PaymentPage />}
-          />
-          <Route
-            path=":restaurantName/admin/login"
-            element={<AdminLogin />}
-          />
-          <Route
-            path=":restaurantName/admin"
-            element={isAdminAuthenticated ? <AdminLandingPage /> : <AdminLogin />}
-          />
-          <Route 
-            path=":restaurantName/admin/archived"
-            element={isAdminAuthenticated ? <ArchivedPage /> : <AdminLogin />} 
-          />
-          <Route
-            path=":restaurantName/admin/OrderPage"
-            element={isAdminAuthenticated ? <OrderPage /> : <AdminLogin />}
-          />
-           <Route
-            path=":restaurantName/admin/Menu"
-            element={isAdminAuthenticated ? <MenuPage /> : <AdminLogin />}
-          />
+    // 2. WRAP YOUR ENTIRE ROUTER IN THE CART PROVIDER
+    <CartProvider>
+      <BrowserRouter>
+        {/* Wrapper to ensure our neutral background color from our design system is everywhere */}
+        <div className="min-h-screen bg-neutral">
+          <Navbar restaurant={restaurant} />
           
-          {/* Landing Page */}
-          <Route path="/" element={
-            <div className="flex flex-col items-center justify-center h-screen text-center px-4">
-              <h1 className="text-4xl font-headline font-extrabold text-secondary">
-                Welcome to {restaurant?.name || 'Our Platform'}
-              </h1>
-              <p className="text-gray-500 mt-4 text-lg font-body">
-                Please scan the QR code located on your table to access the menu.
-              </p>
-            </div>
-          } />
-        </Routes>
-      </div>
-    </BrowserRouter>
+          <Routes>
+            <Route
+              path=":restaurantName/table/:tableNumber/menu"
+              element={<MenuPage restaurant={restaurant} />}
+            />
+            <Route
+              path=":restaurantName/table/:tableNumber/cart"
+              element={<CartPage />}
+            />
+            <Route
+              path=":restaurantName/table/:tableNumber/payment"
+              element={<PaymentPage />}
+            />
+            <Route
+              path=":restaurantName/admin/login"
+              element={<AdminLogin />}
+            />
+            <Route
+              path=":restaurantName/admin"
+              element={isAdminAuthenticated ? <AdminLandingPage /> : <AdminLogin />}
+            />
+            <Route 
+              path=":restaurantName/admin/archived"
+              element={isAdminAuthenticated ? <ArchivedPage /> : <AdminLogin />} 
+            />
+            <Route
+              path=":restaurantName/admin/OrderPage"
+              element={isAdminAuthenticated ? <OrderPage /> : <AdminLogin />}
+            />
+             <Route
+              path=":restaurantName/admin/Menu"
+              element={isAdminAuthenticated ? <MenuPage /> : <AdminLogin />}
+            />
+            
+            {/* 3. REPLACED THE INLINE DIV WITH YOUR NEW LANDING PAGE */}
+            <Route path="/" element={<LandingPage />} />
+            
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </CartProvider>
   );
 }
 
