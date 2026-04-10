@@ -1,18 +1,27 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../connectDB';
-import { Plus, Edit3, Trash2, X, Search, Image as ImageIcon, Check, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, X, Search, Image as ImageIcon, Check, ChevronRight, Loader2 } from 'lucide-react';
 
 function AdminMenuPage({ restaurant }) {
   const [menuItems, setMenuItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [saveState, setSaveState] = useState({ saving: false, error: '', ok: false });
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   
   // Sidebar State
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  const [formData, setFormData] = useState({ name: '', description: '', price: '', category_id: '', image_url: '' });
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    price: '',
+    category_id: '',
+    image_url: '',
+    is_available: true,
+    prep_time_minutes: '0'
+  });
 
   useEffect(() => {
     if (restaurant?.id) fetchData();
@@ -29,27 +38,105 @@ function AdminMenuPage({ restaurant }) {
     setLoading(false);
   }
 
+  const prepTimeColumnName = menuItems?.[0] && Object.prototype.hasOwnProperty.call(menuItems[0], 'prep_time_minute')
+    ? 'prep_time_minute'
+    : 'prep_time_minutes';
+
+  const categoryIdIsNumber = typeof categories?.[0]?.id === 'number';
+  const coerceCategoryId = (raw) => {
+    if (raw === '' || raw == null) return null;
+    return categoryIdIsNumber ? Number(raw) : raw;
+  };
+
   const openDrawer = (item = null) => {
+    setSaveState({ saving: false, error: '', ok: false });
     if (item) {
       setEditingItem(item);
-      setFormData({ ...item, price: item.price.toString() });
+      setFormData({
+        name: item.name ?? '',
+        description: item.description ?? '',
+        price: item.price != null ? String(item.price) : '',
+        category_id: item.category_id ?? '',
+        image_url: item.image_url ?? '',
+        is_available: item.is_available ?? true,
+        prep_time_minutes: String(
+          item?.prep_time_minutes ??
+          item?.prep_time_minute ??
+          0
+        )
+      });
     } else {
       setEditingItem(null);
-      setFormData({ name: '', description: '', price: '', category_id: '', image_url: '' });
+      setFormData({
+        name: '',
+        description: '',
+        price: '',
+        category_id: '',
+        image_url: '',
+        is_available: true,
+        prep_time_minutes: '0'
+      });
     }
     setIsSidebarOpen(true);
   };
 
   const handleSave = async () => {
-    const payload = { ...formData, price: parseFloat(formData.price), restaurant_id: restaurant.id };
-    const { error } = editingItem 
+    if (saveState.saving) return;
+    setSaveState({ saving: true, error: '', ok: false });
+
+    const priceNumber = Number(formData.price);
+    if (!formData.name.trim()) {
+      setSaveState({ saving: false, error: 'Name is required.', ok: false });
+      return;
+    }
+    if (!Number.isFinite(priceNumber) || priceNumber < 0) {
+      setSaveState({ saving: false, error: 'Price must be a valid number.', ok: false });
+      return;
+    }
+
+    const prepTimeInt = Math.trunc(Number(formData.prep_time_minutes));
+    if (!Number.isFinite(prepTimeInt) || prepTimeInt < 0) {
+      setSaveState({ saving: false, error: 'Prep time must be a valid non-negative number.', ok: false });
+      return;
+    }
+
+    const payload = {
+      name: formData.name.trim(),
+      description: formData.description?.trim() || null,
+      price: priceNumber,
+      category_id: coerceCategoryId(formData.category_id),
+      image_url: formData.image_url?.trim() || null,
+      is_available: Boolean(formData.is_available),
+      [prepTimeColumnName]: prepTimeInt,
+      restaurant_id: restaurant.id
+    };
+
+    const { error } = editingItem
       ? await supabase.from('MENU_ITEM').update(payload).eq('id', editingItem.id)
       : await supabase.from('MENU_ITEM').insert(payload);
 
-    if (!error) {
-      fetchData();
-      setIsSidebarOpen(false);
+    if (error) {
+      setSaveState({ saving: false, error: error.message || 'Failed to save entry.', ok: false });
+      return;
     }
+
+    await fetchData();
+    setSaveState({ saving: false, error: '', ok: true });
+    setIsSidebarOpen(false);
+  };
+
+  const handleDelete = async () => {
+    if (!editingItem?.id) return;
+    setSaveState({ saving: true, error: '', ok: false });
+    const { error } = await supabase.from('MENU_ITEM').delete().eq('id', editingItem.id);
+    if (error) {
+      setSaveState({ saving: false, error: error.message || 'Failed to delete entry.', ok: false });
+      return;
+    }
+    await fetchData();
+    setSaveState({ saving: false, error: '', ok: true });
+    setIsDeleteConfirmOpen(false);
+    setIsSidebarOpen(false);
   };
 
   return (
@@ -69,6 +156,7 @@ function AdminMenuPage({ restaurant }) {
                 type="text" 
                 placeholder="Search catalog..." 
                 className="pl-9 pr-4 py-2 bg-gray-100 rounded-full text-xs border-none focus:ring-2 focus:ring-black/5 w-64"
+                value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
@@ -83,8 +171,32 @@ function AdminMenuPage({ restaurant }) {
       </header>
 
       <main className="max-w-7xl mx-auto p-6">
+        <div className="sm:hidden mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+            <input
+              type="text"
+              placeholder="Search catalog..."
+              className="w-full pl-9 pr-4 py-3 bg-white rounded-2xl text-sm border border-gray-100 focus:ring-2 focus:ring-black/5"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {loading && (
+          <div className="text-sm text-gray-500">Loading menu…</div>
+        )}
+
+        {!loading && categories.length === 0 && (
+          <div className="bg-white border border-gray-100 rounded-3xl p-8">
+            <div className="text-lg font-black uppercase tracking-tighter">No categories yet</div>
+            <div className="text-sm text-gray-500 mt-2">Create a category first so you can file menu items under it.</div>
+          </div>
+        )}
+
         {categories.map(category => {
-          const items = menuItems.filter(i => i.category_id === category.id && i.name.toLowerCase().includes(searchQuery.toLowerCase()));
+          const items = menuItems.filter(i => String(i.category_id) === String(category.id) && i.name.toLowerCase().includes(searchQuery.toLowerCase()));
           if (items.length === 0 && searchQuery) return null;
 
           return (
@@ -134,11 +246,19 @@ function AdminMenuPage({ restaurant }) {
         <div className={`absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl transition-transform duration-500 ease-out transform ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className="h-full flex flex-col p-8">
             <div className="flex justify-between items-center mb-10">
-              <h2 className="text-2xl font-black uppercase tracking-tighter">Record Detail</h2>
+              <div>
+                <h2 className="text-2xl font-black uppercase tracking-tighter">{editingItem ? 'Edit Item' : 'New Item'}</h2>
+                <div className="text-[11px] text-gray-500 mt-1">Changes save directly to your menu.</div>
+              </div>
               <button onClick={() => setIsSidebarOpen(false)} className="p-2 hover:bg-gray-100 rounded-full"><X size={20}/></button>
             </div>
 
             <div className="flex-1 space-y-8 overflow-y-auto pr-2">
+              {saveState.error && (
+                <div className="bg-red-50 border border-red-100 text-red-700 rounded-2xl p-4 text-sm">
+                  {saveState.error}
+                </div>
+              )}
               <div className="group">
                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2 block">Full Nomenclature</label>
                 <input 
@@ -169,6 +289,34 @@ function AdminMenuPage({ restaurant }) {
               </div>
 
               <div>
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2 block">Prep time (minutes)</label>
+                <input
+                  type="number"
+                  min="0"
+                  className="w-full border-b-2 border-gray-100 focus:border-black py-2 text-lg font-bold outline-none bg-transparent"
+                  value={formData.prep_time_minutes}
+                  onChange={e => setFormData({ ...formData, prep_time_minutes: e.target.value })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2 block">Availability</label>
+                  <div className="text-sm font-bold">{formData.is_available ? 'Available' : 'Hidden'}</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, is_available: !formData.is_available })}
+                  className={`w-14 h-8 rounded-full transition-colors relative ${formData.is_available ? 'bg-black' : 'bg-gray-200'}`}
+                  aria-label="Toggle availability"
+                >
+                  <span
+                    className={`absolute top-1 w-6 h-6 rounded-full bg-white transition-transform ${formData.is_available ? 'translate-x-7' : 'translate-x-1'}`}
+                  />
+                </button>
+              </div>
+
+              <div>
                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2 block">Editorial Notes</label>
                 <textarea 
                   className="w-full border-2 border-gray-100 rounded-2xl p-4 text-sm font-medium outline-none focus:border-black min-h-[120px] bg-transparent"
@@ -187,11 +335,81 @@ function AdminMenuPage({ restaurant }) {
             </div>
 
             <div className="pt-8 border-t border-gray-100 mt-auto flex gap-4">
+              {editingItem && (
+                <button
+                  onClick={() => setIsDeleteConfirmOpen(true)}
+                  disabled={saveState.saving}
+                  className="w-12 h-12 rounded-full border border-gray-200 hover:bg-gray-50 flex items-center justify-center disabled:opacity-50"
+                  aria-label="Delete item"
+                  title="Delete item"
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
               <button 
                 onClick={handleSave}
-                className="flex-1 bg-black text-white py-4 rounded-full font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2"
+                disabled={saveState.saving}
+                className="flex-1 bg-black text-white py-4 rounded-full font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 disabled:opacity-60"
               >
-                <Check size={16} /> Save Entry
+                {saveState.saving ? <Loader2 className="animate-spin" size={16} /> : <Check size={16} />}
+                {saveState.saving ? 'Saving…' : 'Save Entry'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* --- DELETE CONFIRM MODAL --- */}
+      <div className={`fixed inset-0 z-[60] ${isDeleteConfirmOpen ? 'visible' : 'invisible'}`}>
+        <div
+          className={`absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity duration-200 ${isDeleteConfirmOpen ? 'opacity-100' : 'opacity-0'}`}
+          onClick={() => !saveState.saving && setIsDeleteConfirmOpen(false)}
+        />
+        <div className="absolute inset-0 flex items-center justify-center p-6">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Confirm delete"
+            className={`w-full max-w-md bg-white border border-gray-100 shadow-2xl rounded-3xl overflow-hidden transform transition-all duration-200 ${isDeleteConfirmOpen ? 'scale-100 opacity-100' : 'scale-[0.98] opacity-0'}`}
+          >
+            <div className="p-7">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="text-xs font-black uppercase tracking-[0.2em] text-orange-500">Confirm deletion</div>
+                  <h3 className="text-2xl font-black uppercase tracking-tighter mt-2">Delete item?</h3>
+                  <p className="text-sm text-gray-500 mt-2">
+                    This will permanently remove{' '}
+                    <span className="font-bold text-gray-800">“{editingItem?.name || 'this item'}”</span>.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => !saveState.saving && setIsDeleteConfirmOpen(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full disabled:opacity-50"
+                  disabled={saveState.saving}
+                  aria-label="Close"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+            <div className="px-7 pb-7 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setIsDeleteConfirmOpen(false)}
+                disabled={saveState.saving}
+                className="flex-1 py-3 rounded-full border border-gray-200 hover:bg-gray-50 text-xs font-black uppercase tracking-widest disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={saveState.saving}
+                className="flex-1 py-3 rounded-full bg-black text-white text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                {saveState.saving ? <Loader2 className="animate-spin" size={16} /> : <Trash2 size={16} />}
+                {saveState.saving ? 'Deleting…' : 'Delete'}
               </button>
             </div>
           </div>
