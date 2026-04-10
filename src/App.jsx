@@ -8,10 +8,13 @@ import CartPage from './pages/CartPage';
 import PaymentPage from './pages/PaymentPage';
 import OrderPage from './pages/OrderPage';
 import ArchivedPage from './pages/ArchivedPage';
+import AdminLandingPage from './pages/AdminLandingPage';
+import AdminLogin from './pages/AdminLogin';
 import './App.css';
 
 function App() {
   const [restaurant, setRestaurant] = useState(null);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
 
   useEffect(() => {
     async function getRestaurant() {
@@ -40,7 +43,19 @@ function App() {
       }
     }
 
+    // Check admin authentication
+    const checkAdminAuth = () => {
+      const authenticated = localStorage.getItem('adminAuthenticated') === 'true';
+      const adminRestaurant = localStorage.getItem('adminRestaurant');
+      const pathParts = window.location.pathname.split('/');
+      const currentResName = pathParts[1];
+
+      // Only set authenticated if it's for the current restaurant
+      setIsAdminAuthenticated(authenticated && adminRestaurant === currentResName);
+    };
+
     getRestaurant();
+    checkAdminAuth();
     
     // 3. This listener ensures that if you navigate to a different restaurant
     // without a full page refresh, the data updates.
@@ -65,13 +80,21 @@ function App() {
             path=":restaurantName/table/:tableNumber/payment"
             element={<PaymentPage />}
           />
-          <Route 
-            path=":restaurantName/archived"
-            element={<ArchivedPage />} 
+          <Route
+            path=":restaurantName/admin/login"
+            element={<AdminLogin />}
           />
           <Route
-            path=":restaurantName/OrderPage"
-            element={<OrderPage />}
+            path=":restaurantName/admin"
+            element={isAdminAuthenticated ? <AdminLandingPage /> : <AdminLogin />}
+          />
+          <Route 
+            path=":restaurantName/admin/archived"
+            element={isAdminAuthenticated ? <ArchivedPage /> : <AdminLogin />} 
+          />
+          <Route
+            path=":restaurantName/admin/OrderPage"
+            element={isAdminAuthenticated ? <OrderPage /> : <AdminLogin />}
           />
           
           {/* Landing Page */}

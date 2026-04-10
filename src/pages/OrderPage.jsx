@@ -103,7 +103,7 @@ const OrderPage = () => {
             <p className="text-gray-500 mt-1">Manage and track real-time kitchen operations.</p>
           </div>
           <button 
-            onClick={() => navigate(`/${restaurantName}/archived`)}
+            onClick={() => navigate(`/${restaurantName}/admin/archived`)}
             className="bg-[#F4DAB1] text-[#933314] font-bold py-2.5 px-5 rounded-full shadow-sm hover:bg-[#ebd0a5] transition-colors flex items-center gap-2"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
