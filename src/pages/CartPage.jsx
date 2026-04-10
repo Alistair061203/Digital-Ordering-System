@@ -1,16 +1,16 @@
 // src/pages/CartPage.jsx
 import React from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { Minus, Plus, Trash2, ArrowLeft } from 'lucide-react';
+// Added MessageSquare icon for the notes section
+import { Minus, Plus, Trash2, ArrowLeft, MessageSquare } from 'lucide-react';
 
 function CartPage() {
-  // FIXED: Changed removeFromCart to removeItem to match your CartContext!
-  const { cart, updateQuantity, removeItem } = useCart();
+  // Grab specialInstructions and setSpecialInstructions from context!
+  const { cart, updateQuantity, removeItem, specialInstructions, setSpecialInstructions } = useCart();
   const navigate = useNavigate();
   const { restaurantName, tableNumber } = useParams();
 
-  // --- Calculations ---
   const subtotal = cart.reduce((sum, item) => {
     const itemCost = item.perItemTotal || Number(item.price);
     return sum + (itemCost * item.quantity);
@@ -19,7 +19,6 @@ function CartPage() {
   const serviceCharge = subtotal * 0.05; 
   const total = subtotal + serviceCharge;
 
-  // --- Empty State ---
   if (!cart || cart.length === 0) {
     return (
       <div className="min-h-screen bg-neutral flex flex-col items-center justify-center p-6 text-center animate-fade-in">
@@ -42,11 +41,9 @@ function CartPage() {
     );
   }
 
-  // --- Populated Cart State ---
   return (
     <div className="min-h-screen bg-neutral pb-24 animate-fade-in">
       
-      {/* Header Area */}
       <div className="bg-white sticky top-0 z-40 border-b border-gray-100 shadow-sm px-4 md:px-8 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <button 
@@ -67,21 +64,18 @@ function CartPage() {
 
       <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
         
-        {/* LEFT SIDE: Cart Items List */}
+        {/* LEFT SIDE: Cart Items & Special Instructions Box */}
         <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-4">
           {cart.map((item) => (
             <div key={item.id} className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col sm:flex-row gap-5 relative group transition-all hover:shadow-md">
               
-              {/* Delete Button */}
               <button 
-                // FIXED: Now correctly calls removeItem from your context!
                 onClick={() => removeItem(item.id)}
                 className="absolute top-4 right-4 p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors z-10"
               >
                 <Trash2 size={18} />
               </button>
 
-              {/* Item Image */}
               <div className="w-full sm:w-32 h-32 bg-[#F5F3ED] rounded-2xl overflow-hidden flex-shrink-0">
                 {item.image_url ? (
                   <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
@@ -90,11 +84,9 @@ function CartPage() {
                 )}
               </div>
 
-              {/* Item Details */}
               <div className="flex-1 flex flex-col justify-center">
                 <h3 className="font-headline font-extrabold text-lg text-secondary pr-10 mb-1">{item.name}</h3>
                 
-                {/* Dynamically show selections if they exist */}
                 {item.selections && (
                   <div className="text-sm font-body text-gray-500 mb-3 space-y-0.5">
                     {item.selections.side && <p>• {item.selections.side}</p>}
@@ -103,16 +95,13 @@ function CartPage() {
                   </div>
                 )}
                 
-                {/* Quantity & Price Row */}
                 <div className="mt-auto flex items-center justify-between pt-2">
                   <span className="font-bold text-lg text-secondary">
                     ₱{((item.perItemTotal || item.price) * item.quantity).toFixed(2)}
                   </span>
                   
-                  {/* Quantity Pill */}
                   <div className="flex items-center bg-[#F5F3ED] border-2 border-gray-100/50 rounded-xl p-1">
                     <button 
-                      // FIXED: Passes exactly -1 to represent the delta instead of calculating it here
                       onClick={() => updateQuantity(item.id, -1)}
                       className="w-8 h-8 flex items-center justify-center bg-white rounded-lg shadow-sm text-secondary hover:text-primary transition-colors disabled:opacity-50"
                       disabled={item.quantity <= 1}
@@ -123,7 +112,6 @@ function CartPage() {
                       {item.quantity}
                     </span>
                     <button 
-                      // FIXED: Passes exactly 1 to represent the delta
                       onClick={() => updateQuantity(item.id, 1)}
                       className="w-8 h-8 flex items-center justify-center bg-white rounded-lg shadow-sm text-secondary hover:text-primary transition-colors"
                     >
@@ -131,10 +119,24 @@ function CartPage() {
                     </button>
                   </div>
                 </div>
-
               </div>
             </div>
           ))}
+
+          {/* THE NEW SPECIAL INSTRUCTIONS BOX */}
+          <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm mt-2">
+            <div className="flex items-center gap-3 mb-4">
+              <MessageSquare className="text-gray-400" size={20} />
+              <h3 className="font-headline font-extrabold text-lg text-secondary">Table Notes</h3>
+            </div>
+            <textarea
+              value={specialInstructions}
+              onChange={(e) => setSpecialInstructions(e.target.value)}
+              placeholder="Any allergies, dietary requirements, or special requests for the kitchen?"
+              className="w-full bg-[#F5F3ED] border border-gray-100/50 rounded-2xl p-4 text-sm font-body text-secondary focus:outline-none focus:ring-2 focus:ring-primary min-h-[100px] resize-none transition-shadow"
+            />
+          </div>
+
         </div>
 
         {/* RIGHT SIDE: Order Summary */}

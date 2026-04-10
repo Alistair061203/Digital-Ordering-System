@@ -58,7 +58,7 @@ const AdminLandingPage = () => {
             <div className="relative flex flex-col gap-6 lg:gap-8">
               <div className="max-w-xl">
                 <p className="text-[10px] sm:text-xs uppercase tracking-[0.45em] text-[#b23a2f] font-semibold mb-3">
-                  The Culinary Editorial
+                  May's Foodies
                 </p>
                 <h1 className="text-3xl font-black text-gray-900 leading-tight sm:text-5xl">
                   Kitchen Command

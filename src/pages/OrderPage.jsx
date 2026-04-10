@@ -4,6 +4,7 @@ import { supabase } from '../connectDB';
 import { useNavigate, useParams } from 'react-router-dom';
 import OrderSummaryCards from '../components/OrderSummaryCards';
 import OrderTableRow from '../components/OrderTableRow';
+import { Archive, ClipboardList } from 'lucide-react';
 
 const OrderPage = () => {
   const navigate = useNavigate();
@@ -13,33 +14,59 @@ const OrderPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedRows, setExpandedRows] = useState([]);
+  
+  const [dailyRevenue, setDailyRevenue] = useState(0);
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchOrdersAndRevenue = async () => {
       try {
         setLoading(true);
-        const { data, error } = await supabase
+        
+        const { data: activeOrders, error: activeError } = await supabase
           .from('ORDER_SAMPLE')
           .select('*')
           .eq('is_active', true)
           .order('created_at', { ascending: false });
 
-        if (error) throw error;
-        setOrders(data);
+        if (activeError) throw activeError;
+        setOrders(activeOrders);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const { data: allPaidOrders, error: revenueError } = await supabase
+          .from('ORDER_SAMPLE')
+          .select('total_price')
+          .eq('payment_status', 'Paid') 
+          .gte('created_at', today.toISOString()); 
+
+        if (revenueError) throw revenueError;
+        
+        const calculatedRevenue = allPaidOrders.reduce((sum, order) => sum + Number(order.total_price || 0), 0);
+        setDailyRevenue(calculatedRevenue);
+
       } catch (err) {
-        console.error("Error fetching orders:", err.message);
-        setError("Failed to load orders.");
+        console.error("Error fetching data:", err.message);
+        setError("Failed to load dashboard data.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchOrders();
+    fetchOrdersAndRevenue();
   }, []);
 
   const handleStatusChange = async (orderId, newStatus) => {
-    setOrders(prevOrders => prevOrders.map(order => order.id === orderId ? { ...order, status: newStatus } : order));
-    await supabase.from('ORDER_SAMPLE').update({ status: newStatus }).eq('id', orderId);
+    if (newStatus === 'Completed') {
+      setOrders(prevOrders => prevOrders.filter(order => order.id !== orderId));
+      await supabase.from('ORDER_SAMPLE').update({ 
+        status: newStatus, 
+        is_active: false 
+      }).eq('id', orderId);
+    } else {
+      setOrders(prevOrders => prevOrders.map(order => order.id === orderId ? { ...order, status: newStatus } : order));
+      await supabase.from('ORDER_SAMPLE').update({ status: newStatus }).eq('id', orderId);
+    }
   };
 
   const handlePaymentChange = async (orderId, newPaymentStatus) => {
@@ -53,22 +80,15 @@ const OrderPage = () => {
     if (error) alert("Failed to archive order.");
   };
 
-  // NEW: Function to archive ALL visible orders
   const handleArchiveAll = async () => {
-    // 1. Show a safety confirmation popup
     const isConfirmed = window.confirm("Are you sure you want to archive ALL active orders? This will clear the entire queue.");
-    
-    // 2. If they click Cancel, stop here
     if (!isConfirmed) return;
 
-    // 3. Get the IDs of every order currently on the screen
     const orderIds = orders.map(order => order.id);
     if (orderIds.length === 0) return;
 
-    // 4. Instantly clear the screen (Optimistic UI update)
     setOrders([]);
 
-    // 5. Tell Supabase to update all of those specific IDs to inactive
     const { error } = await supabase
       .from('ORDER_SAMPLE')
       .update({ is_active: false })
@@ -88,50 +108,50 @@ const OrderPage = () => {
     return new Date(dateString).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
   };
 
-  const totalRevenue = orders.reduce((sum, order) => sum + Number(order.total_price || 0), 0);
   const preparingCount = orders.filter(order => order.status === 'Preparing').length;
 
-  if (loading) return <div className="flex justify-center items-center min-h-screen"><p className="animate-pulse">Loading orders...</p></div>;
-  if (error) return <div className="flex justify-center items-center min-h-screen text-red-500"><p>{error}</p></div>;
+  if (loading) return <div className="flex justify-center items-center min-h-screen"><p className="animate-pulse font-bold text-gray-400 tracking-widest uppercase">Syncing Kitchen...</p></div>;
+  if (error) return <div className="flex justify-center items-center min-h-screen text-[#b23a2f] font-bold">{error}</div>;
 
   return (
-    <div className="min-h-screen bg-[#faf8f5] p-8 font-sans text-gray-800">
+    <div className="min-h-screen bg-[#faf8f5] p-6 sm:p-8 font-sans text-gray-800">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-start mb-8">
+        
+        {/* Header section */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
           <div>
-            <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">Active Orders</h1>
-            <p className="text-gray-500 mt-1">Manage and track real-time kitchen operations.</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.35em] text-[#b23a2f] mb-2">Live Feed</p>
+            <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tighter">Active Orders</h1>
           </div>
           <button 
             onClick={() => navigate(`/${restaurantName}/admin/archived`)}
-            className="bg-[#F4DAB1] text-[#933314] font-bold py-2.5 px-5 rounded-full shadow-sm hover:bg-[#ebd0a5] transition-colors flex items-center gap-2"
+            className="bg-white border border-gray-200 text-gray-600 font-bold py-3 px-6 rounded-full shadow-sm hover:bg-gray-50 transition-all flex items-center gap-2 text-xs uppercase tracking-widest"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
-              <path fillRule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clipRule="evenodd" />
-            </svg>
-            View Archived Orders
+            <Archive size={16} />
+            Archived
           </button>
         </div>
 
-        <OrderSummaryCards orders={orders} preparingCount={preparingCount} totalRevenue={totalRevenue} />
+        <OrderSummaryCards orders={orders} preparingCount={preparingCount} totalRevenue={dailyRevenue} />
 
-        <div className="bg-white shadow-sm rounded-2xl overflow-hidden border border-gray-100">
+        {/* Premium Table Container */}
+        <div className="bg-white shadow-xl shadow-gray-200/40 rounded-[2.5rem] overflow-hidden border border-gray-100">
           
-          {/* NEW: Updated Header with Flexbox and Archive All Button */}
-          <div className="px-6 py-4 border-b border-gray-100 bg-white flex justify-between items-center">
-            <h2 className="text-xl font-bold text-gray-800">Order Queue</h2>
+          <div className="px-8 py-6 border-b border-gray-100 bg-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gray-50 rounded-xl text-gray-400">
+                <ClipboardList size={20} strokeWidth={2.5} />
+              </div>
+              <h2 className="text-xl font-black text-gray-800 tracking-tight">Order Queue</h2>
+            </div>
             
-            {/* Only show the button if there are actually orders to archive */}
             {orders.length > 0 && (
               <button
                 onClick={handleArchiveAll}
-                className="flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 font-bold py-2 px-4 rounded-lg transition-colors text-sm shadow-sm"
+                className="flex items-center gap-2 bg-[#fff2ee] text-[#b23a2f] hover:bg-[#ffe6dd] border border-[#f3d3c6] font-bold py-2 px-5 rounded-xl transition-all text-xs uppercase tracking-widest shadow-sm"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-                Archive All
+                <Archive size={14} strokeWidth={2.5} />
+                Clear Queue
               </button>
             )}
           </div>
@@ -139,19 +159,28 @@ const OrderPage = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50 text-gray-400 uppercase text-xs font-bold tracking-wider">
-                  <th className="py-4 px-4 w-12"></th>
-                  <th className="py-4 px-6">Time</th>
-                  <th className="py-4 px-6">Table #</th>
-                  <th className="py-4 px-6">Status</th>
-                  <th className="py-4 px-6">Payment</th>
-                  <th className="py-4 px-6">Total</th>
-                  <th className="py-4 px-6 text-center">Actions</th>
+                <tr className="bg-[#faf8f5] border-b border-gray-100">
+                  <th className="py-5 px-4 w-12"></th>
+                  <th className="py-5 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Time</th>
+                  <th className="py-5 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Table</th>
+                  <th className="py-5 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Status</th>
+                  <th className="py-5 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Payment</th>
+                  <th className="py-5 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Method</th>
+                  <th className="py-5 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Total</th>
+                  <th className="py-5 px-6 text-center text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Actions</th>
                 </tr>
               </thead>
               <tbody className="text-gray-600 text-sm">
                 {orders.length === 0 ? (
-                  <tr><td colSpan="7" className="py-12 text-center text-gray-400 font-medium">No active orders found.</td></tr>
+                  <tr>
+                    <td colSpan="8" className="py-20 text-center">
+                      <div className="flex flex-col items-center justify-center text-gray-400">
+                        <ClipboardList size={48} strokeWidth={1} className="mb-4 opacity-50" />
+                        <p className="font-bold text-sm tracking-widest uppercase">No active orders</p>
+                        <p className="text-xs mt-1">The kitchen is clear.</p>
+                      </div>
+                    </td>
+                  </tr>
                 ) : (
                   orders.map((order) => (
                     <OrderTableRow 

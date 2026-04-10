@@ -43,17 +43,6 @@ const AdminLogin = () => {
   return (
     <div className="min-h-screen bg-[#f4efe8] flex flex-col font-sans">
       {/* 1. Fixed Header Area */}
-      <header className="bg-white px-6 py-4 flex justify-between items-center shadow-sm z-10">
-        <div className="font-black text-xl tracking-tighter text-gray-900 uppercase">
-          May's Foodies
-        </div>
-        <div className="flex gap-4 items-center">
-          <span className="text-sm font-medium text-gray-500 hidden sm:block">Menu</span>
-          <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold text-xs">
-            MF
-          </div>
-        </div>
-      </header>
 
       <main className="flex-1 flex items-center justify-center p-4 md:p-8">
         <div className="mx-auto grid w-full max-w-6xl overflow-hidden rounded-[2.5rem] bg-white shadow-2xl lg:grid-cols-2">

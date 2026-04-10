@@ -59,7 +59,7 @@ function Navbar({ restaurant }) {
                                 onClick={() => navigate(`/${restaurantName}/table/${tableNumber}/cart`)} 
                                 className="text-xs font-bold text-gray-400 hover:text-primary transition-colors uppercase tracking-widest"
                             >
-                                Track Order
+                                Cart
                             </button>
                         </div>
                     )}

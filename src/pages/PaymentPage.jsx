@@ -1,26 +1,26 @@
 // src/pages/PaymentPage.jsx
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useCart } from '../context/CartContext'; 
-import { supabase } from '../connectDB'; 
+import { useCart } from '../context/CartContext';
+import { supabase } from '../connectDB';
 import { ArrowLeft, Wallet, CreditCard, CheckCircle, Receipt } from 'lucide-react';
 
-function PaymentPage() { 
+function PaymentPage() {
   const { restaurantName, tableNumber } = useParams();
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [status, setStatus] = useState('idle');
   // NEW: Saves the final total before the cart is cleared
-  const [paidAmount, setPaidAmount] = useState(0); 
+  const [paidAmount, setPaidAmount] = useState(0);
   const navigate = useNavigate();
-  
-  const { cart, clearCart, specialInstructions } = useCart(); 
+
+  const { cart, clearCart, specialInstructions } = useCart();
 
   // --- Synchronized Calculations (Matches CartPage) ---
   const subtotal = cart.reduce((sum, item) => {
     const itemCost = item.perItemTotal || Number(item.price);
     return sum + (itemCost * item.quantity);
   }, 0);
-  
+
   const serviceCharge = subtotal * 0.05;
   const total = subtotal + serviceCharge;
 
@@ -32,12 +32,14 @@ function PaymentPage() {
     try {
       const orderPayload = {
         table_number: tableNumber,
-        total_price: total, 
-        status: 'Pending', 
+        total_price: total,
+        status: 'Pending',
         payment_status: paymentMethod === 'cash' ? 'Unpaid' : 'Paid',
+        // NEW: Add this line to actually save Cash vs Online to the database!
+        payment_method: paymentMethod,
         is_active: true,
         special_instructions: specialInstructions || 'None',
-        order_items: cart 
+        order_items: cart
       };
 
       const { error } = await supabase
@@ -50,12 +52,12 @@ function PaymentPage() {
       setPaidAmount(total);
 
       setStatus('done');
-      clearCart(); 
+      clearCart();
 
     } catch (error) {
       console.error("Error saving to database:", error.message);
       alert("Failed to send order. Please try again.");
-      setStatus('idle'); 
+      setStatus('idle');
     }
   };
 
@@ -69,12 +71,12 @@ function PaymentPage() {
           </div>
           <h2 className="text-3xl font-headline font-extrabold text-secondary mb-2">Order Sent!</h2>
           <p className="text-gray-500 font-body mb-8">
-            Your order has been sent to the kitchen. 
-            {paymentMethod === 'cash' 
-              ? " Please prepare cash for when the staff arrives." 
+            Your order has been sent to the kitchen.
+            {paymentMethod === 'cash'
+              ? " Please prepare cash for when the staff arrives."
               : " Your online payment was successful."}
           </p>
-          
+
           <div className="bg-[#F5F3ED] w-full rounded-2xl p-6 mb-8 text-left">
             <div className="flex justify-between text-sm text-gray-500 font-bold mb-2 uppercase tracking-widest">
               <span>Table {tableNumber}</span>
@@ -101,11 +103,11 @@ function PaymentPage() {
   // --- MAIN PAYMENT UI ---
   return (
     <div className="min-h-screen bg-neutral pb-24 animate-fade-in">
-      
+
       {/* Header */}
       <div className="bg-white sticky top-0 z-40 border-b border-gray-100 shadow-sm px-4 md:px-8 py-4 mb-8">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <button 
+          <button
             onClick={() => navigate(`/${restaurantName}/table/${tableNumber}/cart`)}
             className="p-2 -ml-2 rounded-full hover:bg-gray-50 text-secondary transition-colors flex items-center gap-2 font-bold text-sm"
           >
@@ -119,16 +121,15 @@ function PaymentPage() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4">
-        
+
         {/* Payment Methods */}
         <h2 className="text-2xl font-headline font-extrabold text-secondary mb-4">Payment Method</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
           <button
-            className={`flex flex-col items-center justify-center p-6 rounded-3xl border-2 transition-all ${
-              paymentMethod === 'cash' 
-                ? 'border-secondary bg-secondary text-white shadow-lg shadow-secondary/20 scale-[1.02]' 
+            className={`flex flex-col items-center justify-center p-6 rounded-3xl border-2 transition-all ${paymentMethod === 'cash'
+                ? 'border-secondary bg-secondary text-white shadow-lg shadow-secondary/20 scale-[1.02]'
                 : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
-            }`}
+              }`}
             onClick={() => setPaymentMethod('cash')}
           >
             <Wallet size={32} strokeWidth={2} className="mb-3" />
@@ -137,11 +138,10 @@ function PaymentPage() {
           </button>
 
           <button
-            className={`flex flex-col items-center justify-center p-6 rounded-3xl border-2 transition-all ${
-              paymentMethod === 'online' 
-                ? 'border-secondary bg-secondary text-white shadow-lg shadow-secondary/20 scale-[1.02]' 
+            className={`flex flex-col items-center justify-center p-6 rounded-3xl border-2 transition-all ${paymentMethod === 'online'
+                ? 'border-secondary bg-secondary text-white shadow-lg shadow-secondary/20 scale-[1.02]'
                 : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
-            }`}
+              }`}
             onClick={() => setPaymentMethod('online')}
           >
             <CreditCard size={32} strokeWidth={2} className="mb-3" />
@@ -171,7 +171,7 @@ function PaymentPage() {
                   </div>
                 ))}
               </div>
-              
+
               <div className="space-y-2 mb-6 font-body text-sm text-gray-500">
                 <div className="flex justify-between items-center">
                   <span>Subtotal</span>

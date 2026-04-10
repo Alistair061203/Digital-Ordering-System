@@ -34,7 +34,7 @@ function App() {
           .from('RESTAURANT')
           .select('*')
           // Using ilike makes it case-insensitive (maysfoodies vs MaysFoodies)
-          .ilike('name', currentResName) 
+          .ilike('name', currentResName)
           .single();
 
         if (data) {
@@ -62,7 +62,7 @@ function App() {
 
     getRestaurant();
     checkAdminAuth();
-    
+
     // 3. This listener ensures that if you navigate to a different restaurant
     // without a full page refresh, the data updates.
   }, [window.location.pathname]);
@@ -74,7 +74,7 @@ function App() {
         {/* Wrapper to ensure our neutral background color from our design system is everywhere */}
         <div className="min-h-screen bg-neutral">
           <Navbar restaurant={restaurant} />
-          
+
           <Routes>
             <Route
               path=":restaurantName/table/:tableNumber/menu"
@@ -96,22 +96,22 @@ function App() {
               path=":restaurantName/admin"
               element={isAdminAuthenticated ? <AdminLandingPage /> : <AdminLogin />}
             />
-            <Route 
+            <Route
               path=":restaurantName/admin/archived"
-              element={isAdminAuthenticated ? <ArchivedPage /> : <AdminLogin />} 
+              element={isAdminAuthenticated ? <ArchivedPage /> : <AdminLogin />}
             />
             <Route
               path=":restaurantName/admin/OrderPage"
               element={isAdminAuthenticated ? <OrderPage /> : <AdminLogin />}
             />
-             <Route
+            <Route
               path=":restaurantName/admin/Menu"
-              element={isAdminAuthenticated ? <MenuPage /> : <AdminLogin />}
+              element={isAdminAuthenticated ? <AdminMenuPage restaurant={restaurant} /> : <AdminLogin />}
             />
-            
+
             {/* 3. REPLACED THE INLINE DIV WITH YOUR NEW LANDING PAGE */}
             <Route path="/" element={<LandingPage />} />
-            
+
           </Routes>
         </div>
       </BrowserRouter>
