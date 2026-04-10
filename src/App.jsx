@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { supabase } from './connectDB';
 import MenuPage from './pages/MenuPage';
+import AdminMenuPage from './pages/AdminMenuPage';
 import Navbar from './components/Navbar';
 import CartPage from './pages/CartPage';
 import PaymentPage from './pages/PaymentPage';
@@ -98,7 +99,7 @@ function App() {
           />
            <Route
             path=":restaurantName/admin/Menu"
-            element={isAdminAuthenticated ? <MenuPage /> : <AdminLogin />}
+            element={isAdminAuthenticated ? <AdminMenuPage restaurant={restaurant} /> : <AdminLogin />}
           />
           
           {/* Landing Page */}
