@@ -11,7 +11,10 @@ function MenuPage({ restaurant }) {
   const { restaurantName, tableNumber } = useParams();
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // States for our new Search & Category bar
   const [activeCategory, setActiveCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState(''); // NEW: Search state
   const [categories, setCategories] = useState([{ id: 'all', name: 'All Dishes' }]);
   const [selectedItem, setSelectedItem] = useState(null);
 
@@ -39,32 +42,49 @@ function MenuPage({ restaurant }) {
     setLoading(false);
   }
 
-  const displayedItems = activeCategory === 'all'
-    ? menuItems
-    : menuItems.filter(item => item.category_id === activeCategory);
+  // UPDATED: Now filters by both Category AND Search text
+  const displayedItems = menuItems.filter(item => {
+    const matchesCategory = activeCategory === 'all' || item.category_id === activeCategory;
+    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    return matchesCategory && matchesSearch;
+  });
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-neutral pb-24">
+      {/* Pass down the new search props alongside the category props */}
       <Category
         categories={categories}
         activeCategory={activeCategory}
         setActiveCategory={setActiveCategory}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
       />
+
 
       <main className="p-4 max-w-md mx-auto md:max-w-5xl">
         <section>
           {loading ? (
-            <p className="text-center text-gray-400 animate-pulse mt-8">Loading...</p>
+            <p className="text-center text-gray-400 animate-pulse mt-8">Loading kitchen...</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {displayedItems.map((item) => (
-                <MenuCard 
-                  key={item.id} 
-                  item={item} 
-                  onAddToCart={() => setSelectedItem(item)} 
-                />
-              ))}
-            </div>
+            <>
+              {displayedItems.length === 0 ? (
+                <div className="text-center py-12 text-gray-400 font-medium bg-white rounded-2xl border border-gray-100 shadow-sm mt-4">
+                  No dishes found for your search.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+                  {displayedItems.map((item) => (
+                    <MenuCard
+                      key={item.id}
+                      item={item}
+                      onAddToCart={() => setSelectedItem(item)}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </section>
       </main>
@@ -72,9 +92,9 @@ function MenuPage({ restaurant }) {
       <CartBar />
 
       {selectedItem && (
-        <ItemModal 
-          item={selectedItem} 
-          onClose={() => setSelectedItem(null)} 
+        <ItemModal
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
         />
       )}
     </div>
