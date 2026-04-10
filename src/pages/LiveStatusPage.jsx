@@ -9,28 +9,42 @@ function LiveStatusPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // 1. Function to pull the data
+  const fetchMyOrders = async () => {
+    const { data, error } = await supabase
+      .from('ORDER_SAMPLE')
+      .select('*')
+      .eq('table_number', tableNumber)
+      .eq('is_active', true) // Only shows orders that aren't 'Completed'/Archived
+      .order('created_at', { ascending: false });
+
+    if (!error) setOrders(data || []);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const fetchMyOrders = async () => {
-      const { data, error } = await supabase
-        .from('ORDER_SAMPLE')
-        .select('*')
-        .eq('table_number', tableNumber)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-
-      if (!error) setOrders(data);
-      setLoading(false);
-    };
-
     fetchMyOrders();
 
-    // Real-time listener for status updates
-    const subscription = supabase
+    // 2. THE REAL-TIME SYNC
+    // This channel listens specifically for when the Chef updates the status
+    const channel = supabase
       .channel('guest-updates')
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'ORDER_SAMPLE' }, fetchMyOrders)
+      .on(
+        'postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'ORDER_SAMPLE',
+          filter: `table_number=eq.${tableNumber}` 
+        }, 
+        (payload) => {
+          console.log("Real-time update received!", payload);
+          fetchMyOrders(); // Automatically refreshes the UI
+        }
+      )
       .subscribe();
 
-    return () => supabase.removeChannel(subscription);
+    return () => supabase.removeChannel(channel);
   }, [tableNumber]);
 
   const getStatusConfig = (status) => {
@@ -46,7 +60,11 @@ function LiveStatusPage() {
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center font-black uppercase tracking-widest text-gray-400">Syncing Table...</div>;
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center font-black uppercase tracking-widest text-gray-400 animate-pulse">
+      Syncing Table...
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-[#faf8f5] p-6 sm:p-10">
@@ -114,7 +132,7 @@ function LiveStatusPage() {
                     ))}
                   </div>
 
-                  {/* Table Notes / Special Requests (Red tag like the Inspo) */}
+                  {/* Table Notes / Special Requests */}
                   {order.special_instructions && order.special_instructions !== 'None' && (
                     <div className="px-6 mb-4">
                         <div className="inline-block bg-[#fff2ee] border border-[#f3d3c6] px-3 py-1.5 rounded-lg">
@@ -125,7 +143,7 @@ function LiveStatusPage() {
                     </div>
                   )}
 
-                  {/* Bottom Action Area (Status Badge) */}
+                  {/* Bottom Status Area */}
                   <div className="p-4 bg-gray-50 border-t border-gray-100 flex gap-3">
                     <div className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-sm transition-all ${config.bg} ${config.text} border border-transparent`}>
                       {config.icon}

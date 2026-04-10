@@ -15,55 +15,75 @@ const OrderPage = () => {
   const [error, setError] = useState(null);
   const [expandedRows, setExpandedRows] = useState([]);
   
+  // State for our Daily Revenue (All paid orders from today)
   const [dailyRevenue, setDailyRevenue] = useState(0);
 
+  // 1. Unified Fetch Function (Used for initial load and Realtime updates)
+  const fetchOrdersAndRevenue = async () => {
+    try {
+      // Fetch Active Queue
+      const { data: activeOrders, error: activeError } = await supabase
+        .from('ORDER_SAMPLE')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (activeError) throw activeError;
+      setOrders(activeOrders);
+
+      // Fetch Today's Revenue (regardless of active/archived status)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const { data: allPaidOrders, error: revenueError } = await supabase
+        .from('ORDER_SAMPLE')
+        .select('total_price')
+        .eq('payment_status', 'Paid') 
+        .gte('created_at', today.toISOString()); 
+
+      if (revenueError) throw revenueError;
+      
+      const calculatedRevenue = allPaidOrders.reduce((sum, order) => sum + Number(order.total_price || 0), 0);
+      setDailyRevenue(calculatedRevenue);
+
+    } catch (err) {
+      console.error("Error fetching data:", err.message);
+      setError("Failed to load dashboard data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchOrdersAndRevenue = async () => {
-      try {
-        setLoading(true);
-        
-        const { data: activeOrders, error: activeError } = await supabase
-          .from('ORDER_SAMPLE')
-          .select('*')
-          .eq('is_active', true)
-          .order('created_at', { ascending: false });
-
-        if (activeError) throw activeError;
-        setOrders(activeOrders);
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const { data: allPaidOrders, error: revenueError } = await supabase
-          .from('ORDER_SAMPLE')
-          .select('total_price')
-          .eq('payment_status', 'Paid') 
-          .gte('created_at', today.toISOString()); 
-
-        if (revenueError) throw revenueError;
-        
-        const calculatedRevenue = allPaidOrders.reduce((sum, order) => sum + Number(order.total_price || 0), 0);
-        setDailyRevenue(calculatedRevenue);
-
-      } catch (err) {
-        console.error("Error fetching data:", err.message);
-        setError("Failed to load dashboard data.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchOrdersAndRevenue();
+
+    // 2. THE REALTIME MAGIC
+    // Listen for any changes on the ORDER_SAMPLE table and refresh the data
+    const channel = supabase
+      .channel('kitchen-updates')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'ORDER_SAMPLE' },
+        (payload) => {
+          console.log("Change detected!", payload);
+          fetchOrdersAndRevenue();
+        }
+      )
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
   }, []);
 
   const handleStatusChange = async (orderId, newStatus) => {
     if (newStatus === 'Completed') {
+      // If "Completed", we archive it immediately (Optimistic UI)
       setOrders(prevOrders => prevOrders.filter(order => order.id !== orderId));
       await supabase.from('ORDER_SAMPLE').update({ 
         status: newStatus, 
         is_active: false 
       }).eq('id', orderId);
     } else {
+      // Otherwise, just update status normally
       setOrders(prevOrders => prevOrders.map(order => order.id === orderId ? { ...order, status: newStatus } : order));
       await supabase.from('ORDER_SAMPLE').update({ status: newStatus }).eq('id', orderId);
     }
@@ -132,6 +152,7 @@ const OrderPage = () => {
           </button>
         </div>
 
+        {/* Passing the dailyRevenue (calculated from ALL today's paid orders) */}
         <OrderSummaryCards orders={orders} preparingCount={preparingCount} totalRevenue={dailyRevenue} />
 
         {/* Premium Table Container */}
