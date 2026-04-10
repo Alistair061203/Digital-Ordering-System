@@ -2,11 +2,8 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { supabase } from './connectDB';
-
-// 1. IMPORT YOUR NEW PROVIDER AND LANDING PAGE
 import { CartProvider } from './context/CartContext';
 import LandingPage from './pages/LandingPage';
-
 import MenuPage from './pages/MenuPage';
 import AdminMenuPage from './pages/AdminMenuPage';
 import Navbar from './components/Navbar';
@@ -16,6 +13,7 @@ import OrderPage from './pages/OrderPage';
 import ArchivedPage from './pages/ArchivedPage';
 import AdminLandingPage from './pages/AdminLandingPage';
 import AdminLogin from './pages/AdminLogin';
+import LiveStatusPage from './pages/LiveStatusPage';
 import './App.css';
 
 function App() {
@@ -80,6 +78,7 @@ function App() {
               path=":restaurantName/table/:tableNumber/menu"
               element={<MenuPage restaurant={restaurant} />}
             />
+            <Route path=":restaurantName/table/:tableNumber/status" element={<LiveStatusPage />} />
             <Route
               path=":restaurantName/table/:tableNumber/cart"
               element={<CartPage />}

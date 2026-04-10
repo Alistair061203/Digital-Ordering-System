@@ -49,17 +49,24 @@ function Navbar({ restaurant }) {
                     {/* Only show menu links if we are active on a table */}
                     {tableNumber && (
                         <div className="hidden md:flex gap-6">
-                            <button 
-                                onClick={() => navigate(`/${restaurantName}/table/${tableNumber}/menu`)} 
+                            <button
+                                onClick={() => navigate(`/${restaurantName}/table/${tableNumber}/menu`)}
                                 className="text-xs font-bold text-gray-400 hover:text-primary transition-colors uppercase tracking-widest"
                             >
                                 Menu
                             </button>
-                            <button 
-                                onClick={() => navigate(`/${restaurantName}/table/${tableNumber}/cart`)} 
+                            <button
+                                onClick={() => navigate(`/${restaurantName}/table/${tableNumber}/cart`)}
                                 className="text-xs font-bold text-gray-400 hover:text-primary transition-colors uppercase tracking-widest"
                             >
                                 Cart
+                            </button>
+                            {/* NEW: Track Order Link */}
+                            <button
+                                onClick={() => navigate(`/${restaurantName}/table/${tableNumber}/status`)}
+                                className="text-xs font-bold text-[#b23a2f] hover:text-primary transition-colors uppercase tracking-widest"
+                            >
+                                Track Order
                             </button>
                         </div>
                     )}
@@ -68,10 +75,10 @@ function Navbar({ restaurant }) {
                 {/* Right Side: Actions & Logo Profile Avatar */}
                 <div className="flex items-center justify-end gap-6">
                     <div className="flex items-center gap-4 border-l border-gray-100 pl-6">
-                        
+
                         {/* Only show the cart icon if we are active on a table */}
                         {tableNumber && (
-                            <button 
+                            <button
                                 onClick={() => navigate(`/${restaurantName}/table/${tableNumber}/cart`)}
                                 className="relative text-secondary hover:text-primary transition-colors pr-2"
                             >
