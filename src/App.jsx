@@ -8,6 +8,7 @@ import { CartProvider } from './context/CartContext';
 import LandingPage from './pages/LandingPage';
 
 import MenuPage from './pages/MenuPage';
+import AdminMenuPage from './pages/AdminMenuPage';
 import Navbar from './components/Navbar';
 import CartPage from './pages/CartPage';
 import PaymentPage from './pages/PaymentPage';
